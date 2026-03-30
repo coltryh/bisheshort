@@ -9,7 +9,7 @@ spring:
     url: jdbc:shardingsphere:classpath:shardingsphere-config-${database.env:dev}.yaml
   data:
     redis:
-      host: 127.0.0.1
+      host: 106.12.146.146
       port: 6379
       password: 123456
   mvc:
@@ -19,20 +19,20 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: 106.12.146.146:8848
 
 short-link:
   domain:
-    default: nurl.ink:8001
+    default: localhost:8001
   stats:
     locale:
       amap-key: 824c511f0997586ea016f979fdb23087
   goto-domain:
     white-list:
-      enable: true
-      names: '拿个offer,知乎,掘金,博客园'
+      enable: false
+      names: '短链接系统,知乎,掘金,博客园'
       details:
-        - nageoffer.com
+        - ryh.com
         - zhihu.com
         - juejin.cn
         - cnblogs.com
@@ -41,3 +41,9 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
+
+# 智谱AI配置（用于AI分析功能）
+ai:
+  zhipu:
+    api-key: 8122ebf4b33649c69997828b67bd7cb7.jKGnxhwa0X3JMcd2
+    chat-model: glm-4-flash

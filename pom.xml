@@ -3,21 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.nageoffer.shortlink</groupId>
+    <groupId>com.ryh.shortlink</groupId>
     <artifactId>shortlink-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>
-        🔥热门推荐🔥SaaS 短链接系统，承载高并发和海量存储等场景难题。专为实习、校招以及社招而出的最新项目，项目质量不亚于12306铁路购票项目。
+        毕业设计项目：基于Spring Cloud微服务架构的高并发短链接管理系统。
+        采用微服务架构，支持高并发访问和海量数据存储，包含短链接生成、跳转、统计分析、用户管理等核心功能。
+        学生：阮义亨 | 学号：221042Y307 | 智能技术学部 | 计算机科学与技术
     </description>
 
     <developers>
         <developer>
-            <name>马丁</name>
-            <email>machen@apache.org</email>
-            <url>https://github.com/magestacks</url>
-            <organization>Apache and openGoofy</organization>
+            <name>阮义亨</name>
+            <organization>智能技术学部 | 计算机科学与技术</organization>
         </developer>
     </developers>
 
@@ -42,7 +42,6 @@
 
     <modules>
         <module>admin</module>
-        <module>aggregation</module>
         <module>project</module>
         <module>gateway</module>
     </modules>
@@ -140,6 +139,19 @@
                     <source>17</source>
                     <target>17</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

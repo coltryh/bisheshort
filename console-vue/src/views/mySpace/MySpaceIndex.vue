@@ -64,7 +64,7 @@
         <div v-if="!isRecycleBin" class="buttons-box">
           <div style="width: 100%; display: flex">
             <!-- <el-input style="flex: 1; margin-right: 20px" placeholder="请输入http://或https://开头的连接或引用跳转程序"></el-input> -->
-            <el-button class="addButton" type="primary" style="width: 130px; margin-right: 10px"
+            <el-button class="addButton organic-btn" type="primary" style="width: 130px; margin-right: 10px"
               @click="isAddSmallLink = true">创建短链</el-button>
             <el-button style="width: 130px; margin-right: 10px" @click="isAddSmallLinks = true">批量创建</el-button>
           </div>
@@ -76,7 +76,7 @@
         </div>
         <!-- 表格展示区域 -->
         <el-table :data="tableData" height="calc(100vh - 240px)" style="width: calc(100vw - 230px)"
-          :header-cell-style="{ background: '#f7f8fa', color: '#606266' }">
+          :header-cell-style="{ background: '#F3F4F1', color: '#2C2C24', fontWeight: '600' }">
           <!-- 数据为空时展示的内容 -->
           <template #empty>
             <div style="height: 60vh; display: flex; align-items: center; justify-content: center">
@@ -347,14 +347,6 @@
           <CreateLink ref="createLink1Ref" :groupInfo="editableTabs" @onSubmit="addLink" @cancel="cancelAddLink"
             :defaultGid="pageParams.gid" :is-single="true"></CreateLink>
         </el-tab-pane>
-        <el-tab-pane>
-          <template #label>
-            <span class="custom-tabs-label">
-              <el-icon>
-                <Connection />
-              </el-icon>
-              <span>随机跳转</span>
-            </span> </template>暂未开发</el-tab-pane>
       </el-tabs>
     </el-dialog>
     <!-- 修改短链信息弹框 -->
@@ -367,6 +359,9 @@
       <CreateLinks ref="createLink2Ref" :groupInfo="editableTabs" @onSubmit="addLink" @cancel="cancelAddLink"
         :defaultGid="pageParams.gid"></CreateLinks>
     </el-dialog>
+
+    <!-- AI智能助手 -->
+    <AiAssistant :statsData="chartsInfo" :shortLinkInfo="visitLink" />
   </div>
 </template>
 
@@ -382,6 +377,7 @@ import EditLink from './components/editLink/EditLink.vue'
 import { ElMessage } from 'element-plus'
 import defaultImg from '@/assets/png/短链默认图标.png'
 import QRCode from './components/qrCode/QRCode.vue'
+import AiAssistant from '@/components/AiAssistant.vue'
 
 // 查看图表的时候传过去展示的，没什么用
 const nums = ref(0)
@@ -812,7 +808,9 @@ const removeLink = (data) => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
+@import '../../styles/design-system.less';
+
 .flex-box {
   display: flex;
   align-items: center;
@@ -822,9 +820,10 @@ const removeLink = (data) => {
 
 .hover-box:hover {
   cursor: pointer;
-  color: rgba(40, 145, 206, 0.6);
-  background-color: #f7f7f7;
-  box-shadow: 0px 2px 8px 0px rgba(28, 41, 90, 0.1);
+  color: #5D7052;
+  background-color: rgba(93, 112, 82, 0.08);
+  box-shadow: 0px 2px 8px 0px rgba(93, 112, 82, 0.1);
+  transition: all 0.3s ease;
 }
 
 .option-title {
@@ -834,11 +833,14 @@ const removeLink = (data) => {
   height: 56px;
   font-size: 15px;
   font-weight: 600;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #DED8CF;
+  color: #2C2C24;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F1 100%);
 
   span {
     font-size: 12px;
     font-weight: 400;
+    color: #78786C;
   }
 }
 
@@ -848,7 +850,8 @@ const removeLink = (data) => {
   position: relative;
   height: 100%;
   width: 190px;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #DED8CF;
+  background: #FEFEFA;
 
   .item-box {
     height: 43px;
@@ -882,26 +885,29 @@ const removeLink = (data) => {
 
 .recycle-box {
   flex: 1;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #DED8CF;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #78786C;
+  transition: all 0.3s ease;
 }
 
 .edit {
   display: none;
   margin-left: 5px;
-  color: rgb(83, 97, 97);
+  color: #78786C;
   font-size: 20px;
+  transition: all 0.3s ease;
 }
 
 .edit:hover {
-  color: #2991ce;
+  color: #5D7052;
   cursor: pointer;
 }
 
 .zero {
-  color: rgb(83, 97, 97) !important;
+  color: #78786C !important;
 }
 
 // 提示框样式
@@ -924,28 +930,31 @@ const removeLink = (data) => {
 }
 
 .selectedItem {
-  color: #3464e0 !important;
-  background-color: #ebeffa !important;
+  color: #5D7052 !important;
+  background-color: rgba(93, 112, 82, 0.12) !important;
   font-weight: 600 !important;
+  border-radius: @radius-md;
 }
 
 .block:hover {
-  color: rgb(121, 187, 255);
+  color: #7A8B6E;
 
   .el-icon {
-    color: rgb(121, 187, 255) !important;
+    color: #7A8B6E !important;
   }
 }
 
 .table-edit {
   font-size: 20px;
   margin-right: 20px;
-  color: #3677c2;
+  color: #5D7052;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .table-edit:hover {
-  color: #98cafe;
+  color: #7A8B6E;
+  transform: scale(1.1);
 }
 
 .qr-code {
@@ -960,12 +969,14 @@ const removeLink = (data) => {
 .content-box {
   flex: 1;
   padding: 16px;
-  background-color: #eef0f5;
+  background-color: #F0EBE5;
   position: relative;
 
   .table-box {
-    background-color: #ffffff;
+    background-color: #FFFFFF;
     height: 100%;
+    border-radius: @radius-lg;
+    box-shadow: @shadow-soft;
 
     .buttons-box {
       display: flex;
@@ -986,10 +997,13 @@ const removeLink = (data) => {
       display: flex;
       align-items: center;
       padding-left: 16px;
+      border-bottom: 1px solid #DED8CF;
 
       span:nth-child(1) {
         font-size: 20px;
         margin-right: 5px;
+        color: #2C2C24;
+        font-weight: 600;
       }
     }
   }
@@ -1134,7 +1148,7 @@ const removeLink = (data) => {
 }
 
 .orderIndex {
-  color: #3677c2;
+  color: #5D7052;
 }
 
 .sortOptions {
@@ -1143,5 +1157,31 @@ const removeLink = (data) => {
   // height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+// Organic Button Styles
+.organic-btn {
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  border: none;
+  border-radius: @radius-md;
+  padding: 10px 20px;
+  font-weight: 600;
+  color: #F3F4F1;
+  box-shadow: 0 2px 8px rgba(93, 112, 82, 0.25);
+  transition: all 0.3s ease;
+}
+
+.organic-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.35);
+}
+
+.organic-btn:active {
+  transform: translateY(0);
+}
+
+// Empty state styling
+.el-table__empty-text {
+  color: #78786C;
 }
 </style>

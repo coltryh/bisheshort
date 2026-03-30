@@ -194,21 +194,25 @@ const changeUserInfo = (formEl) => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
+@import '../../styles/design-system.less';
+
 .main-box {
   position: relative;
   flex: 1;
   padding: 15px;
-  background-color: rgb(238, 240, 245);
-  height: calc(100vh - 50px);
+  background-color: #F0EBE5;
+  height: calc(100vh - 54px);
   display: flex;
   flex-direction: column;
 }
 
 .content-box {
   flex: 1;
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   padding: 20px;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-soft;
 }
 
 .register {
@@ -217,6 +221,23 @@ const changeUserInfo = (formEl) => {
 
 :deep(.el-descriptions__label) {
   width: 200px !important;
+  background-color: #F9FAFB !important;
+  color: #2C2C24 !important;
+  font-weight: 600;
+}
+
+:deep(.el-descriptions__body) {
+  background-color: #FFFFFF !important;
+}
+
+:deep(.el-descriptions__content) {
+  color: #78786C;
+}
+
+:deep(.el-descriptions__title) {
+  color: #2C2C24 !important;
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .second-font {
@@ -227,25 +248,82 @@ const changeUserInfo = (formEl) => {
   position: relative;
   height: 100%;
   width: 190px;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #DED8CF;
   display: flex;
   padding-top: 15px;
+  background-color: #FEFEFA;
   div {
     flex: 1;
     display: flex;
     height: 50px;
     align-items: center;
-    // justify-content: center;
     padding-left: 15px;
-    background-color: rgb(235, 239, 250);
-    font-family:
-      PingFangSC-Semibold,
-      PingFang SC;
-    color: #3464e0;
+    background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+    color: #F3F4F1;
     font-weight: 600;
+    border-radius: @radius-md;
+    margin: 0 10px;
   }
 }
+
 :deep(.el-descriptions__body) {
   width: 500px;
+}
+
+// Organic button style for the edit button
+.el-button {
+  border-radius: @radius-md;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(93, 112, 82, 0.25);
+}
+
+.el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.35);
+}
+
+// Icon styling
+.cell-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2C2C24;
+  font-weight: 500;
+}
+
+// Dialog styling
+:deep(.el-dialog) {
+  border-radius: @radius-lg;
+  box-shadow: @shadow-float;
+}
+
+:deep(.el-dialog__header) {
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  color: #F3F4F1;
+  border-top-left-radius: @radius-lg;
+  border-top-right-radius: @radius-lg;
+  padding: 20px;
+}
+
+:deep(.el-dialog__title) {
+  color: #F3F4F1;
+  font-weight: 600;
+}
+
+:deep(.el-dialog__body) {
+  padding: 30px;
+  background-color: #FDFCF8;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 15px 20px;
+  background-color: #F9FAFB;
+  border-top: 1px solid #DED8CF;
 }
 </style>

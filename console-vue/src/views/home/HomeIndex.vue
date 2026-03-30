@@ -3,8 +3,10 @@
     <el-container>
       <el-header height="54px" style="padding: 0">
         <div class="header">
-          <div @click="toMySpace" class="logo">拿个offer-SaaS短链接@马丁</div>
+          <div @click="toMySpace" class="logo">短链接管理系统@阮义亨</div>
           <div style="display: flex; align-items: center">
+            <!-- 原作者链接已注释 -->
+            <!--
             <a
               class="link-span"
               style="text-decoration: none"
@@ -33,6 +35,7 @@
                 href="http://shortlink.nageoffer.com"
             >演示环境</a
             >
+            -->
             <el-dropdown>
               <div class="block">
                 <span
@@ -133,13 +136,15 @@ const truncateText = (text, maxLength) => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
+@import '../../styles/design-system.less';
+
 .el-container {
   height: 100vh;
 
   .el-aside {
     border: 0;
-    background-color: #0e5782;
+    background-color: #5D7052;
 
     ul {
       border: 0px;
@@ -147,30 +152,37 @@ const truncateText = (text, maxLength) => {
   }
 
   .el-main {
-    background-color: #e8e8e8;
+    background-color: #F0EBE5;
   }
 }
 
 .header {
-  color: rgba(0,0,0,.85);
-  background-color: #252b30;
+  color: #2C2C24;
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
   padding: 0 0 0 20px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(93, 112, 82, 0.15);
 
   .block {
     cursor: pointer;
     display: flex;
     align-items: center;
     border: 0px;
+    color: #F3F4F1;
+    transition: all 0.3s ease;
+  }
+
+  .block:hover {
+    color: #FFFFFF;
   }
 }
 
 .content-box {
-  height: calc(100vh - 50px);
-  background-color: white;
+  height: calc(100vh - 54px);
+  background-color: #FDFCF8;
 }
 
 :deep(.el-tooltip__trigger:focus-visible) {
@@ -178,46 +190,58 @@ const truncateText = (text, maxLength) => {
 }
 
 .logo {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #e8e8e8;
-  font-family: Helvetica, Tahoma, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Heiti SC',
-    'Microsoft YaHei', 'WenQuanYi Micro Hei';
-  // font-family: 'Helvetica Neue', Helvetica, STHeiTi, Arial, sans-serif;
+  color: #F3F4F1;
+  font-family: 'Fraunces', 'Nunito', sans-serif;
   cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
 
 .logo:hover {
-  color: #fff;
+  color: #FFFFFF;
+  transform: translateY(-1px);
 }
 
 .link-span {
-  color: #fff;
-  opacity: .6;
+  color: #F3F4F1;
+  opacity: 0.85;
   margin-right: 30px;
-  font-size: 16px;
-  font-family: 'Helvetica Neue', Helvetica, STHeiTi, Arial, sans-serif;
+  font-size: 15px;
+  font-family: 'Nunito', sans-serif;
   cursor: pointer;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .link-span:hover {
-  text-decoration: underline !important;
+  text-decoration: none !important;
   opacity: 1;
-  color: #fff;
+  color: #FFFFFF;
 }
 
 .name-span {
-  color: #fff;
-  opacity: .6;
-  margin-right: 30px;
-  font-size: 12px;
-  font-family: 'Helvetica Neue', Helvetica, STHeiTi, Arial, sans-serif;
+  color: #F3F4F1;
+  opacity: 0.9;
+  margin-right: 20px;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
   cursor: pointer;
   text-decoration: none;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: @radius-pill;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.name-span:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 1;
 }
 
 .avatar {

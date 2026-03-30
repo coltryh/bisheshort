@@ -1,127 +1,237 @@
 <template>
   <div class="login-page">
-    <h1 class="title">SaaS 短 链 接 平 台(马丁)</h1>
-    <div class="login-box">
-      <!-- 登录 -->
-      <div class="logon" :class="{ hidden: !isLogin }">
-        <h2>用户登录</h2>
-        <el-form ref="loginFormRef1" :model="loginForm" label-width="50px" :rules="loginFormRule">
-          <div class="form-container1">
-            <el-form-item prop="phone">
-              <el-input v-model="loginForm.username" placeholder="请输入用户名" maxlength="11" show-word-limit clearable>
-                <template v-slot:prepend> 用户名 </template>
-              </el-input>
-            </el-form-item>
+    <!-- Organic Background Elements -->
+    <div class="organic-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
 
-            <el-form-item prop="password">
-              <el-input v-model="loginForm.password" type="password" clearable placeholder="请输入密码" show-password
-                style="margin-top: 20px">
-                <template v-slot:prepend> 密<span class="second-font">码</span> </template>
-              </el-input>
-            </el-form-item>
+    <!-- Main Content -->
+    <div class="login-container">
+      <!-- Logo/Brand Section -->
+      <div class="brand-section">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="currentColor" stroke="#2C2C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
-          <div class="btn-gourp">
-            <div>
-              <el-checkbox class="remeber-password" v-model="checked"
-                style="color: #a0a0a0; margin: 0 0 0px 0">记住密码</el-checkbox>
-            </div>
-            <div>
-              <el-button :loading="loading" @keyup.enter="login" type="primary" plain
-                @click="login(loginFormRef1)">登录</el-button>
-            </div>
+          <div>
+            <h1 class="brand-title text-h2">短链接系统</h1>
+            <p class="brand-subtitle text-body">创建、管理和追踪您的短链接</p>
           </div>
-        </el-form>
+        </div>
       </div>
-      <!-- 注册 -->
-      <div class="register" :class="{ hidden: isLogin }">
-        <h2>用户注册</h2>
-        <el-form ref="loginFormRef2" :model="addForm" label-width="50px" class="form-container" width="width"
-          :rules="addFormRule">
-          <el-form-item prop="username">
-            <el-input v-model="addForm.username" placeholder="请输入用户名" maxlength="11" show-word-limit clearable>
-              <template v-slot:prepend> 用户名 </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item prop="mail">
-            <el-input v-model="addForm.mail" placeholder="请输入邮箱" show-word-limit clearable>
-              <template v-slot:prepend> 邮<span class="second-font">箱</span> </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item prop="phone">
-            <el-input v-model="addForm.phone" placeholder="请输入手机号" show-word-limit clearable>
-              <template v-slot:prepend> 手机号 </template>
-            </el-input>
-          </el-form-item>
-          <el-form-item prop="realName">
-            <el-input v-model="addForm.realName" placeholder="请输入姓名" show-word-limit clearable>
-              <template v-slot:prepend> 姓<span class="second-font">名</span> </template>
-            </el-input>
-          </el-form-item>
 
-          <el-form-item prop="password">
-            <el-input v-model="addForm.password" type="password" clearable placeholder="请输入密码" show-password>
-              <template v-slot:prepend> 密<span class="second-font">码</span> </template>
-            </el-input>
-          </el-form-item>
-          <!-- 验证码 -->
-          <!-- <el-form-item prop="vertify_code">
-            <el-input
-              v-model="loginForm.vertify_code"
-              placeholder="验证码"
-              prefix-icon="el-icon-key"
-              clearable
-            >
-              <template v-slot:append>
-                <div class="login-code" @click="refreshCode" title="看不清？点击切换">
-                  <vertify-code :identifyCode="loginIdentifyCode"></vertify-code>
-                </div>
-              </template>
-            </el-input>
-          </el-form-item> -->
-          <div class="btn-gourp">
-            <div></div>
-            <div>
-              <el-button :loading="loading" @keyup.enter="login" type="primary" plain
-                @click="addUser(loginFormRef2)">注册</el-button>
+      <!-- Login/Register Card -->
+      <div class="auth-card organic-card">
+        <!-- Login Form -->
+        <transition name="slide-fade" mode="out-in">
+          <div v-if="isLogin" class="auth-form" key="login">
+            <div class="auth-header">
+              <h2 class="auth-title text-h3">欢迎回来</h2>
+              <p class="auth-subtitle text-body">登录您的账户</p>
             </div>
+
+            <el-form ref="loginFormRef1" :model="loginForm" :rules="loginFormRule" label-position="top">
+              <el-form-item prop="username" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="loginForm.username"
+                  placeholder="用户名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="password" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="loginForm.password"
+                  type="password"
+                  placeholder="密码"
+                  size="large"
+                  show-password
+                  clearable
+                />
+              </el-form-item>
+
+              <div class="form-actions">
+                <el-checkbox v-model="checked" class="organic-checkbox">
+                  <span>记住我</span>
+                </el-checkbox>
+              </div>
+
+              <div class="btn-group">
+                <el-button
+                  type="primary"
+                  size="large"
+                  class="organic-btn btn-block"
+                  :loading="loading"
+                  @click="login(loginFormRef1)">
+                  <span class="btn-text">登录</span>
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke="#F3F4F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </el-button>
+              </div>
+            </el-form>
           </div>
-        </el-form>
-      </div>
-      <!-- 左右移动的切换按钮 -->
-      <div class="move" ref="moveRef">
-        <span style="font-size: 18px; margin-bottom: 25px; color: rgb(225, 238, 250)">{{
-          !isLogin ? '已有账号？' : '还没有账号？'
-        }}</span>
-        <span style="font-size: 16px; color: rgb(225, 238, 250)">{{
-          !isLogin ? '欢迎登录账号！' : '欢迎注册账号！'
-        }}</span>
-        <el-button style="width: 100px; margin-top: 30px" @click="changeLogin">{{
-          !isLogin ? '去登录' : '去注册'
-        }}</el-button>
+
+          <!-- Register Form -->
+          <div v-else class="auth-form" key="register">
+            <div class="auth-header">
+              <h2 class="auth-title text-h3">开始旅程</h2>
+              <p class="auth-subtitle text-body">创建新账户</p>
+            </div>
+
+            <el-form ref="loginFormRef2" :model="addForm" :rules="addFormRule" label-position="top">
+              <el-form-item prop="username" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.username"
+                  placeholder="用户名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="realName" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.realName"
+                  placeholder="您的姓名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="mail" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="22,6 12,13 2,6" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.mail"
+                  placeholder="邮箱地址"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="phone" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.phone"
+                  placeholder="手机号码"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="password" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#78786C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.password"
+                  type="password"
+                  placeholder="密码"
+                  size="large"
+                  show-password
+                  clearable
+                />
+              </el-form-item>
+
+              <div class="btn-group">
+                <el-button
+                  type="primary"
+                  size="large"
+                  class="organic-btn btn-block"
+                  :loading="loading"
+                  @click="addUser(loginFormRef2)">
+                  <span class="btn-text">注册</span>
+                  <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#F3F4F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="8.5" cy="7" r="4" stroke="#F3F4F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="20" y1="8" x2="20" y2="14" stroke="#F3F4F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="23" y1="11" x2="17" y2="11" stroke="#F3F4F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </el-button>
+              </div>
+            </el-form>
+          </div>
+        </transition>
+
+        <!-- Login/Register Toggle -->
+        <div class="toggle-section">
+          <p class="toggle-text">
+            {{ isLogin ? '还没有账号？' : '已有账号？' }}
+          </p>
+          <el-button
+            text
+            class="toggle-btn"
+            @click="changeLogin">
+            {{ isLogin ? '去注册' : '去登录' }}
+          </el-button>
+        </div>
       </div>
     </div>
+
+    <!-- Vanta 3D Background (optional) -->
     <div ref="vantaRef" class="vanta"></div>
+
+    <!-- Verification Dialog -->
+    <el-dialog v-model="isWC" title="人机验证" width="40%" :before-close="handleClose" class="organic-dialog">
+      <div class="verification-flex">
+        <span>扫码下方二维码，关注后回复：<strong class="accent-text">link</strong>，获取短链接系统人机验证码</span>
+        <img class="qr-code" src="@/assets/png/公众号二维码.png" alt="公众号二维码">
+        <el-form class="verification-form" :model="verification" :rules="verificationRule" ref="verificationRef">
+          <el-form-item prop="code" label="验证码">
+            <el-input v-model="verification.code" placeholder="请输入验证码" size="large" />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="isWC = false">取消</el-button>
+          <el-button type="primary" @click="verificationLogin(verificationRef)">
+            确认
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
-  <el-dialog v-model="isWC" title="人机验证" width="40%" :before-close="handleClose">
-    <div class="verification-flex">
-      <span>扫码下方二维码，关注后回复：<strong><span style="color:blue;">link</span></strong>，获取拿个offer-SaaS短链接系统人机验证码</span>
-      <img class="img" src="@/assets/png/公众号二维码.png" alt="">
-      <el-form class="form" :model="verification" :rules="verificationRule" ref="verificationRef">
-        <el-form-item prop="code" label="验证码">
-          <el-input v-model="verification.code" />
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="isWC = false">取消</el-button>
-        <el-button type="primary" @click="verificationLogin(verificationRef)">
-          确认
-        </el-button>
-      </span>
-    </template>
-  </el-dialog>
-  <!-- </template> -->
 </template>
 
 <script setup>
@@ -226,6 +336,9 @@ const verification = reactive({
 const verificationRule = reactive({
   code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 })
+const handleClose = () => {
+  isWC.value = false
+}
 const verificationLogin = (formEl) => {
   if (!formEl) return
   formEl.validate(async (valid) => {
@@ -265,12 +378,6 @@ const login = (formEl) => {
   if (!formEl) return
   formEl.validate(async (valid) => {
     if (valid) {
-      // 当域名为下面这两个时，弹出公众号弹框
-      // let domain = window.location.host
-      // if (domain === 'shortlink.magestack.cn' || domain === 'shortlink.nageoffer.com') {
-      //   isWC.value = true
-      //   return
-      // }
       const res1 = await API.user.login(loginForm)
       if (res1.data.code === '0') {
         const token = res1?.data?.data?.token
@@ -329,198 +436,442 @@ onBeforeUnmount(() => {
 })
 // 展示登录还是展示注册
 const isLogin = ref(true)
-const moveRef = ref() // 左右移动的切换按钮模块
 const changeLogin = () => {
   let domain = window.location.host
-  if (domain === 'shortlink.magestack.cn' || domain === 'shortlink.nageoffer.com') {
+  if (domain === 'shortlink.magestack.cn' || domain === 'shortlink.ryh.com') {
     ElMessage.warning('演示环境暂不支持注册')
     return
   }
   isLogin.value = !isLogin.value
-  if (isLogin.value) {
-    moveRef.value.style.transform = 'translate(0, 0)'
-  } else {
-    moveRef.value.style.transform = 'translate(-420px, 0)'
-  }
 }
 </script>
 
 <style lang="less" scoped>
-.login-box {
-  border: 2px solid #0984e3;
-  overflow: hidden;
-  display: flex;
-  justify-content: space-between;
-  border-radius: 20px;
-  padding: 0 40px 0 40px;
-  width: 700px;
-  // background-color: #eee;
-  position: absolute;
-  z-index: 999;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  box-sizing: border-box;
-  // border: 1px solid #eee;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  animation: hideIndex 0.5s;
+// Import design tokens
+@import '../../styles/design-system.less';
 
-  h2 {
-    font-size: 30px;
-    font-family:
-      PingFangSC-Semibold,
-      PingFang SC;
-    font-weight: 600;
-    color: #3a3f63;
-    width: 100%;
-    text-align: center;
-    padding: 20px;
-  }
-
-  .el-form-item {
-    margin-bottom: 23px;
-  }
-
-  .btn-gourp {
-    margin-top: 30px;
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-
-    .el-button {
-      width: 100px;
-    }
-
-    .remeber-password {
-      left: 0;
-      line-height: 0.5rem;
-    }
-  }
-
-  .el-checkbox {
-    width: 100%;
-    text-align: center;
-    margin-top: 1rem;
-  }
-}
-
-/deep/ .el-form-item__content {
-  margin-left: 0 !important;
-}
-
-@keyframes hideIndex {
-
-  // <!--具体细节自己可以调整-->
-  0% {
-    opacity: 0;
-    transform: translate(7.3125rem, -50%);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-
+// Layout
 .login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: @spacing-lg;
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #FDFCF8 0%, #F0EBE5 100%);
+}
+
+// Organic Blobs Background
+.organic-blobs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+// Blob 1 - Top Left
+.blob-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #7A8B6E 0%, #5D7052 70%);
+  top: -100px;
+  left: -100px;
+  animation: float-1 20s infinite ease-in-out;
+}
+
+@keyframes float-1 {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-30px, 30px);
+  }
+}
+
+// Blob 2 - Bottom Right
+.blob-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #E6DCCD 0%, #C18C5D 70%);
+  bottom: -80px;
+  right: -80px;
+  animation: float-2 25s infinite ease-in-out;
+}
+
+@keyframes float-2 {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, -20px);
+  }
+}
+
+// Blob 3 - Center Bottom
+.blob-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #F0EBE5 0%, #78786C 70%);
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: float-3 15s infinite ease-in-out;
+}
+
+@keyframes float-3 {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+// Main Container
+.login-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  animation: fade-in-up 0.6s ease-out;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Brand Section
+.brand-section {
+  text-align: center;
+  margin-bottom: @spacing-xl;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: @spacing-md;
+}
+
+.logo-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F3F4F1;
+  box-shadow: 0 8px 24px rgba(93, 112, 82, 0.25);
+}
+
+.logo-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.brand-title {
+  font-family: 'Fraunces', -apple-system, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #2C2C24;
+  margin: 0;
+}
+
+.brand-subtitle {
+  font-family: 'Nunito', 'Quicksand', -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #78786C;
+  margin: 0;
+}
+
+// Auth Card
+.auth-card {
+  background: #FFFFFF;
+  border-radius: @radius-xl;
+  box-shadow: @shadow-card;
+  padding: @spacing-xl;
   overflow: hidden;
 }
 
+.auth-header {
+  text-align: center;
+  margin-bottom: @spacing-lg;
+}
+
+.auth-title {
+  font-family: 'Fraunces', -apple-system, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #2C2C24;
+  margin: 0 0 @spacing-xs 0;
+}
+
+.auth-subtitle {
+  font-family: 'Nunito', 'Quicksand', -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #78786C;
+  margin: 0;
+}
+
+// Form Styles
+.auth-form {
+  margin-top: @spacing-lg;
+}
+
+.organic-input {
+  margin-bottom: @spacing-md;
+}
+
+.organic-input :deep(.el-input__wrapper) {
+  border-radius: @radius-lg;
+  border: 2px solid #DED8CF;
+  background: #FFFFFF;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px 12px;
+  box-shadow: none;
+}
+
+.organic-input :deep(.el-input__wrapper:hover) {
+  border-color: #5D7052;
+}
+
+.organic-input.is-focus :deep(.el-input__wrapper) {
+  border-color: #5D7052;
+  box-shadow: 0 0 0 4px rgba(93, 112, 82, 0.1);
+}
+
+.organic-input :deep(.el-input__inner) {
+  font-size: 1rem;
+  color: #2C2C24;
+}
+
+// Icons in inputs
+.input-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: @spacing-sm;
+  color: #78786C;
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: @spacing-lg;
+}
+
+.organic-checkbox :deep(.el-checkbox__label) {
+  color: #78786C !important;
+  font-weight: 500;
+}
+
+.organic-checkbox :deep(.el-checkbox__inner) {
+  border-radius: 4px;
+  border-color: #DED8CF;
+}
+
+.organic-checkbox:hover :deep(.el-checkbox__inner) {
+  border-color: #5D7052;
+}
+
+.organic-checkbox.is-checked :deep(.el-checkbox__inner) {
+  background-color: #5D7052;
+  border-color: #5D7052;
+}
+
+// Button Styles
+.btn-group {
+  margin-top: @spacing-lg;
+}
+
+.organic-btn {
+  width: 100%;
+  height: 50px;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: @radius-pill;
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  box-shadow: 0 4px 16px rgba(93, 112, 82, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.organic-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(93, 112, 82, 0.4);
+}
+
+.organic-btn:active {
+  transform: translateY(0);
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.organic-btn .btn-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @spacing-sm;
+  color: #F3F4F1;
+  font-size: 1rem;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.organic-btn:hover .btn-icon {
+  transform: translateX(3px);
+}
+
+// Toggle Section
+.toggle-section {
+  text-align: center;
+  margin-top: @spacing-lg;
+  padding-top: @spacing-lg;
+  border-top: 1px solid #F0EBE5;
+}
+
+.toggle-text {
+  font-family: 'Nunito', 'Quicksand', -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #78786C;
+  margin: 0 0 @spacing-sm 0;
+}
+
+.toggle-btn {
+  color: #5D7052;
+  font-weight: 600;
+  padding: @spacing-xs @spacing-md;
+  border-radius: @radius-pill;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(93, 112, 82, 0.1);
+}
+
+// Form Transition
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slide-fade-enter-to,
+.slide-fade-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+// Vanta 3D Background (Keep original)
 .vanta {
   position: absolute;
   top: 0;
-  right: 0;
   left: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-.logon {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.hidden {
-  animation: hidden 1s;
-  animation-fill-mode: forwards; // 保持最后的状态
-}
-
-@keyframes hidden {
-
-  // <!--具体细节自己可以调整-->
-  0% {
-    opacity: 1;
-  }
-
-  70% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-.move {
-  position: absolute;
-  right: 0;
+  width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 40%;
-  transition-duration: 0.5s;
-  align-items: center;
-  background: #06beb6;
-  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #0984e3, #0984e3);
-  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right,
-      #1a8fd5,
-      #0984e3);
-  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.3;
 }
 
-.title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 15%;
-  z-index: 999;
-  font-size: 40px;
-  color: #fff;
-  font-weight: bolder;
-}
-
-:deep(.el-input__suffix-inner) {
-  width: 60px;
-}
-
-.form-container1 {
-  transform: translateY(-80%);
-}
-
-.second-font {
-  margin-left: 13px;
-}
-
+// Verification Dialog
 .verification-flex {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: @spacing-md;
+}
 
-  .img {
-    margin-top: 10px;
-    align-self: center;
+.qr-code {
+  align-self: center;
+  max-width: 200px;
+  border-radius: @radius-lg;
+  border: 2px solid #DED8CF;
+  padding: @spacing-sm;
+}
+
+.verification-form {
+  width: 100%;
+  margin-top: @spacing-md;
+}
+
+.accent-text {
+  color: #5D7052;
+}
+
+// Responsive
+@media (max-width: @screen-sm) {
+  .login-container {
+    padding: @spacing-md;
   }
-  .form {
-    transform: translateY(15px);
-    width: 90%;
+
+  .organic-blobs {
+    opacity: 0.4;
+  }
+
+  .blob-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .blob-2 {
+    width: 250px;
+    height: 250px;
+  }
+
+  .blob-3 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .auth-card {
+    padding: @spacing-lg;
   }
 }
 </style>
