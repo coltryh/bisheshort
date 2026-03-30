@@ -1,0 +1,461 @@
+<template>
+  <div class="login-page">
+    <!-- Organic Background Elements -->
+    <div class="organic-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="login-container">
+      <!-- Logo/Brand Section -->
+      <div class="brand-section">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 7c-.4.4 0l-3 3-3-3 0 1.41 1.41L9 9l-.4.4 0l-3 3-3 0 1.41L12 2c-.4.4 0l-3 3 3 0 1.41L18 6l-.4.4 0-3-3-3 0 1.41L3 7c-.4.4 0 1.41L12 2z" fill="currentColor" stroke="#2C2C24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="brand-title text-h2">短链接系统</h1>
+          <p class="brand-subtitle text-body">创建、管理和追踪您的短链接</p>
+        </div>
+      </div>
+
+      <!-- Login/Register Toggle Card -->
+      <div class="auth-card organic-card">
+        <div class="auth-header">
+          <h2 class="auth-title text-h3">{{ isLogin ? '欢迎回来' : '开始旅程' }}</h2>
+          <p class="auth-subtitle text-body">{{ isLogin ? '登录您的账户' : '创建新账户' }}</p>
+        </div>
+
+        <!-- Login Form -->
+        <transition name="slide-fade" mode="out-in">
+          <div v-if="isLogin" class="auth-form">
+            <el-form ref="loginFormRef1" :model="loginForm" :rules="loginFormRule" label-position="top">
+              <el-form-item prop="username" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 7a4 4 4 0 0-1.29-1.29a15 15 15 0 0-1.1 4.414 0L9 20a4 4 0 0 0-1.414 0L5 5a4 4 0 1.414 0L16 7a4 4 0 0 0-1.29-1.29a15 15 15 0 0 1.1 4.414 0L5 5a4 4 0 0 0 1.414z" fill="none" stroke="#78786C" stroke-width="2"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="loginForm.username"
+                  placeholder="用户名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="password" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 1C17.269 1.17 0-2 2.03 0-2.03-1.56 1.56a8 8 8 0 0 1.56 0-2.03 0L5.12 1.269a6 6 6 0 0 1.56 0-2.03 0L17 6a8 8 0 0 0 1.56z" fill="none" stroke="#78786C" stroke-width="2"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="loginForm.password"
+                  type="password"
+                  placeholder="密码"
+                  size="large"
+                  show-password
+                  clearable
+                />
+              </el-form-item>
+
+              <div class="form-actions">
+                <el-checkbox v-model="checked" class="organic-checkbox">
+                  <span>记住我</span>
+                </el-checkbox>
+              </div>
+
+              <el-button
+                type="primary"
+                size="large"
+                class="organic-btn btn-block"
+                :loading="loading"
+                @keyup.enter="login(loginFormRef1)">
+                <span class="btn-text">登录</span>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 13l4.47 5.59.47 0-1.3 1.3 1.3-2.68-2.68 0-5-5 1.11-5.11 0 0-1.41 1.41-1.41 0 0 1.41-2.03-2.03 0L3.5 4.47 5.59-5.59.47 0 1.3 1.3-2.68-2.68 0-5-5 1.11-5.11 0 0 1.41 1.41-2.03 0L19 8l-7.33 5.12-5.12-5.12-.33 0 2-2 .33-2.68 0-5-5 1.11-5.11 0 0 1.41z" fill="none" stroke="#F3F4F1" stroke-width="2"/>
+                </svg>
+              </el-button>
+            </el-form>
+        </div>
+
+        <!-- Register Form -->
+        <transition name="slide-fade" mode="out-in">
+          <div v-if="!isLogin" class="auth-form">
+            <el-form ref="loginFormRef2" :model="addForm" :rules="addFormRule" label-position="top">
+              <el-form-item prop="username" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 7a4 4 4 0 0-1.29-1.29a15 15 15 0 0-1.1 4.414 0L9 20a4 4 0 0 0-1.414 0L5 5a4 4 0 1.414 0L16 7a4 4 0 0 0-1.29-1.29a15 15 15 0 0 1.1 4.414 0L5 5a4 4 0 0 0 1.414z" fill="none" stroke="#78786C" stroke-width="2"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.username"
+                  placeholder="用户名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="realName" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21c-2.209-2.209 0-1.991 1.011-3.019-3.019 3.019 9 9-1.514 1.514 0 0 0 1.11-1.41-1.41 0L7.545 20.261 7.545 19.548 2.109 2.109 2.109 0 0 0-1.979 1.979-2.21-2.21 0-2.209-2.209 0-1.991 1.011 3.019-3.019 3.019 9 9-1.514 1.514 0 0 0 1.11z" fill="none" stroke="#78786C" stroke-width="2"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.realName"
+                  placeholder="您的姓名"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="mail" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4c.626 0-2 032 2.032-2.032C1.656 1.656 0 0 0-1.125-1.125 1.125-1.125 1.125S3.538 3.538 0 0 1.125-1.125 1.125-1.125 1.125-4.254-2.254 0-3.538-3.538 0 0-1.125-1.125-1.125 1.125-1.125 0 0 1.125-1.125-1.125-1.125-2.254 0 0 0 1.125s3.538 3.538 0 0 0 0 0 0 0-1.125-1.125-1.125-1.125-1.125 1.125-1.125-1.125 2.254 0 0 0 0 0 0 0 1.125 1.125 1.125-1.125 1.125 1.125-1.125 2.254 0 0 0 0 0-1.125-1.125-1.125-1.125-1.125-1.125-1.125-1.125z" fill="none" stroke="#78786C" stroke-width="2"/>
+                  </svg>
+                </template>
+                <el-input
+                  v-model="addForm.mail"
+                  placeholder="邮箱地址"
+                  size="large"
+                  clearable
+                />
+              </el-form-item>
+
+              <el-form-item prop="phone" class="organic-input">
+                <template #prefix>
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92c-2.589-2.589 0-1.269-1.269-2.065-2.065-1.019-1.019-1.019 3.019 6 6-1.379-1.379-1.379-1.379-1.379-1.379-2.76-2.76 0-3.619-3.619-3.619 3.619 6 6-3.551-3.551 0 0 0-1.125-1.125-1.125-1.125 1.125-1.125-1.125-1.125 2.254 0 0 0 0 0 0 0 0 0 0-1.125-1.125-1.125-1.125-1.125-1.125-1.125 0 0 0 1.125 1.125-1.125-1.125-1.125-1.125 2.254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 圆-2.76-2.76 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  Google Search  S8 8 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -h14a1 10.24 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 改造登录页面根据设计系统"
+  D 20 21c-3.073 1.733 1.733 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3.019-3.019 9 9-1.514 1.514 0 0 1.11-1.41-1.41 0L12 2c-2.589-2.589 0-1.269-1.269-2.065-2.065-1.019-1.019 3.019 9 9-1.379-1.379-1.379-1.379-2.76-2.76 0-3.619-3.619-3.619 3.619 6 6-3.551-3.551 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 混 0-2.76-2.76 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 样式太长了，我需要用Less的方式创建一个简化版本的登录页面样式。</think>我意识到登录页面代码太长了，让我创建配套的样式文件：<tool_call>Write<arg_key>content</arg_key><arg_value>// ============================================
+// Organic Login Page Styles
+// ============================================
+
+@import '../styles/fonts.less';
+
+// Layout
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: @spacing-lg;
+  position: relative;
+  overflow: hidden;
+}
+
+// Organic Blobs Background
+.organic-blobs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+// Blob 1 - Top Left
+.blob-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #7A8B6E 0%, #5D7052 70%);
+  top: -100px;
+  left: -100px;
+  animation: float-1 20s infinite ease-in-out;
+}
+
+@keyframes float-1 {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-30px, 30px);
+  }
+}
+
+// Blob 2 - Bottom Right
+.blob-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #E6DCCD 0%, #C18C5D 70%);
+  bottom: -80px;
+  right: -80px;
+  animation: float-2 25s infinite ease-in-out;
+}
+
+@keyframes float-2 {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, -20px);
+  }
+}
+
+// Blob 3 - Center Bottom
+.blob-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #F0EBE5 0%, #78786C 70%);
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: float-3 15s infinite ease-in-out;
+}
+
+@keyframes float-3 {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+// Main Container
+.login-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  padding: @spacing-lg;
+  animation: fade-in-up 0.6s ease-out;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Brand Section
+.brand-section {
+  text-align: center;
+  margin-bottom: @spacing-xl;
+}
+
+.logo-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: @spacing-md;
+  margin-bottom: @spacing-md;
+}
+
+.logo-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #5D7052 0%, #4A5C3D 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F3F4F1;
+  box-shadow: 0 4px 15px rgba(93, 112, 82, 0.2);
+}
+
+.brand-title {
+  .text-h2();
+  color: #2C2C24;
+  margin: 0;
+}
+
+.brand-subtitle {
+  .text-body();
+  color: #78786C;
+  margin: 0;
+}
+
+// Auth Card
+.auth-card {
+  background: #FFFFFF;
+  border-radius: @radius-xl;
+  box-shadow: @shadow-card;
+  padding: @spacing-xl;
+  overflow: hidden;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: @spacing-xl;
+}
+
+.auth-title {
+  .text-h3();
+  color: #2C2C24;
+  margin: 0;
+}
+
+.auth-subtitle {
+  .text-body();
+  color: #78786C;
+  margin: 0;
+}
+
+// Form Styles
+.auth-form {
+  margin-top: @spacing-lg;
+}
+
+.organic-input {
+  margin-bottom: @spacing-md;
+}
+
+.organic-input .el-input__wrapper {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.organic-input .el-input__wrapper:hover {
+  transform: translateY(-1px);
+}
+
+.organic-input.is-focus .el-input__wrapper {
+  transform: translateY(-1px);
+}
+
+.organic-input .el-input__inner {
+  border-radius: @radius-lg !important;
+  border: 2px solid #DED8CF !important;
+  background: #FFFFFF !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.organic-input.is-focus .el-input__inner {
+  border-color: #5D7052 !important;
+  box-shadow: 0 0 0 6px rgba(93, 112, 82, 0.1) !important;
+}
+
+// Icons in inputs
+.input-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: @spacing-sm;
+  color: #78786C;
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: @spacing-lg;
+}
+
+.organic-checkbox {
+  margin-bottom: 0;
+}
+
+.organic-checkbox .el-checkbox__label {
+  color: #78786C !important;
+  font-weight: 500;
+}
+
+.organic-checkbox:hover .el-checkbox__inner::after {
+  background-color: #5D7052 !important;
+  border-color: #5D7052 !important;
+}
+
+// Button Styles
+.organic-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @spacing-sm;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+// Form Transition
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slide-fade-enter-to,
+.slide-fade-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+// Vanta 3D Background (Keep original)
+.vanta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Responsive
+@media (max-width: @screen-sm) {
+  .login-container {
+    padding: @spacing-md;
+  }
+
+  .organic-blobs {
+    opacity: 0.4;
+  }
+
+  .blob-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .blob-2 {
+    width: 250px;
+    height: 250px;
+  }
+
+  .blob-3 {
+    width: 200px;
+    height: 200px;
+  }
+}
