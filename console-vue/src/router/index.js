@@ -7,7 +7,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/home'
+      name: 'Landing',
+      component: () => import('@/views/landing/LandingIndex.vue')
     },
     {
       path: '/login',
@@ -19,25 +20,32 @@ const router = createRouter({
       name: 'LayoutIndex',
       redirect: '/home/space',
       component: () => import('@/views/home/HomeIndex.vue'),
+      meta: { requiresAuth: true },
       children: [
         {
           // 前面不能加/
           path: 'space',
           name: 'MySpace',
           component: () => import('@/views/mySpace/MySpaceIndex.vue'),
-          meta: { title: '我的空间' }
+          meta: { title: '我的空间', requiresAuth: true }
         },
         {
           path: 'recycleBin',
           name: 'RecycleBin',
           component: () => import('@/views/recycleBin/RecycleBinIndex.vue'),
-          meta: { title: '账户设置' }
+          meta: { title: '账户设置', requiresAuth: true }
         },
         {
           path: 'account',
           name: 'Mine',
           component: () => import('@/views/mine/MineIndex.vue'),
-          meta: { title: '个人中心' }
+          meta: { title: '个人中心', requiresAuth: true }
+        },
+        {
+          path: 'ai',
+          name: 'AiChat',
+          component: () => import('@/views/ai/AiChatIndex.vue'),
+          meta: { title: 'AI助手', requiresAuth: true }
         }
       ]
     }
@@ -46,13 +54,23 @@ const router = createRouter({
 
 // eslint-disable-next-line no-unused-vars
 router.beforeEach(async (to, from, next) => {
-  // 从localstorage中先获取token，并赋给chookies，如果还存在token，而且还处于正常登录状态就直接将token和username赋给cookies，用户徐的数据请求
+  // 从localstorage中先获取token，并赋给cookies
   setToken(localStorage.getItem('token'))
   setUsername(localStorage.getItem('username'))
   const token = getToken()
-  if (to.path === '/login') {
-    next()
+
+  // 首页和登录页不需要登录
+  if (to.path === '/' || to.path === '/login') {
+    // 如果已登录，跳转到首页
+    if (to.path === '/login' && isNotEmpty(token)) {
+      next('/home')
+    } else {
+      next()
+    }
+    return
   }
+
+  // 其他页面需要登录
   if (isNotEmpty(token)) {
     next()
   } else {

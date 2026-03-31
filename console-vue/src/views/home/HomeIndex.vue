@@ -36,6 +36,7 @@
             >演示环境</a
             >
             -->
+            <span class="ai-link" @click="toAiChat">AI助手</span>
             <el-dropdown>
               <div class="block">
                 <span
@@ -113,6 +114,11 @@ const logout = async () => {
 // 点击左上方的图片跳转到我的空间
 const toMySpace = () => {
   router.push('/home' + '/space')
+}
+
+// 跳转到 AI 助手
+const toAiChat = () => {
+  router.push('/home' + '/ai')
 }
 const username = ref('')
 onMounted(async () => {
@@ -219,6 +225,25 @@ const truncateText = (text, maxLength) => {
   text-decoration: none !important;
   opacity: 1;
   color: #FFFFFF;
+}
+
+.ai-link {
+  color: #F3F4F1;
+  margin-right: 20px;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: @radius-pill;
+  background: linear-gradient(135deg, #059669, #10b981);
+  transition: all 0.3s ease;
+}
+
+.ai-link:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
 }
 
 .name-span {
