@@ -159,10 +159,10 @@
                 <el-icon><House /></el-icon>
               </a>
               <a href="#" class="social-link">
-                <el-icon><Message /></el-icon>
+                <el-icon><ChatLineSquare /></el-icon>
               </a>
               <a href="#" class="social-link">
-                <el-icon><Position /></el-icon>
+                <el-icon><LocationInformation /></el-icon>
               </a>
             </div>
           </div>
@@ -204,17 +204,17 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Link,
+  Link as LinkIcon,
   Star,
   ArrowRight,
-  Link2,
   DataLine,
   Compass,
   ChatDotRound,
-  UserPlus,
+  User,
   Share,
   House,
-  Message,
-  Position
+  ChatLineSquare,
+  LocationInformation
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -222,7 +222,7 @@ const router = useRouter()
 // 功能卡片数据
 const features = [
   {
-    icon: Link2,
+    icon: LinkIcon,
     title: '短链接生成',
     description: '快速生成简洁易记的短链接，支持自定义链接和批量创建',
     colorClass: 'green'
@@ -250,13 +250,13 @@ const features = [
 // 步骤数据
 const steps = [
   {
-    icon: UserPlus,
+    icon: User,
     title: '注册账号',
     description: '快速注册，几秒钟即可开始使用',
     step: '01'
   },
   {
-    icon: Link2,
+    icon: Link,
     title: '创建链接',
     description: '输入原始链接，一键生成短链接',
     step: '02'

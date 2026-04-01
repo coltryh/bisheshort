@@ -13,13 +13,19 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
+      // admin 服务 (8002) - 原有功能
+      '/api/short-link/admin': {
         target: 'http://localhost:8002',
         changeOrigin: true,
         ws: true,
-        pathRewrite: {
-          '^/api': '/api'
-        }
+        rewrite: (path) => path // 保留完整路径
+      },
+      // project 服务 (8001) - AI 功能
+      '/api/short-link/v1': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path) => path // 保留完整路径
       }
     }
   }

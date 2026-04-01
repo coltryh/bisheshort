@@ -162,8 +162,8 @@ const quickQuestions = [
 const loadConversations = async () => {
   try {
     const res = await aiApi.getConversations()
-    if (res.data) {
-      conversations.value = res.data
+    if (res.data && res.data.data) {
+      conversations.value = res.data.data
     }
   } catch (error) {
     console.error('加载对话列表失败', error)
@@ -174,9 +174,9 @@ const loadConversations = async () => {
 const createNewChat = async () => {
   try {
     const res = await aiApi.createConversation()
-    if (res.data) {
-      conversations.value.unshift(res.data)
-      selectConversation(res.data)
+    if (res.data && res.data.data) {
+      conversations.value.unshift(res.data.data)
+      selectConversation(res.data.data)
     }
   } catch (error) {
     console.error('创建对话失败', error)
@@ -190,8 +190,8 @@ const selectConversation = async (conv) => {
 
   try {
     const res = await aiApi.getMessages(conv.id)
-    if (res.data) {
-      messages.value = res.data
+    if (res.data && res.data.data) {
+      messages.value = res.data.data
       scrollToBottom()
     }
   } catch (error) {
@@ -222,11 +222,11 @@ const sendMessage = async () => {
 
   try {
     const res = await aiApi.sendMessage(currentConversationId.value, content)
-    if (res.data) {
+    if (res.data && res.data.data) {
       // 添加 AI 回复
       messages.value.push({
         role: 'assistant',
-        content: res.data.content,
+        content: res.data.data.content,
         createdTime: new Date()
       })
 
@@ -547,6 +547,8 @@ onMounted(() => {
   line-height: 1.6;
   font-size: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .message.user .message-text {

@@ -14,7 +14,7 @@
     <!-- AI对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      title="AI智能助手"
+      title="AI智能分析"
       width="600px"
       :close-on-click-modal="false"
     >
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, watch } from 'vue'
 import { ChatDotRound, Promotion, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import API from '@/api'
@@ -95,11 +95,24 @@ const props = defineProps({
   }
 })
 
+// 内部状态
+const internalStatsData = ref({})
+const internalShortLinkInfo = ref({})
+
+// 监听外部props变化
+watch(() => props.statsData, (newVal) => {
+  internalStatsData.value = newVal || {}
+}, { immediate: true })
+
+watch(() => props.shortLinkInfo, (newVal) => {
+  internalShortLinkInfo.value = newVal || {}
+}, { immediate: true })
+
 const dialogVisible = ref(false)
 const messages = ref([
   {
     role: 'assistant',
-    content: '您好！我是短链接AI助手，可以帮您分析短链接的访问数据、解答运营问题。请问有什么可以帮您？'
+    content: '您好！我是短链接AI智能分析助手，可以帮您分析短链接的访问数据、解答运营问题。请问有什么可以帮您？'
   }
 ])
 const userInput = ref('')
@@ -134,11 +147,13 @@ const sendMessage = async () => {
   try {
     // 准备上下文
     let context = ''
-    if (props.statsData) {
-      context = '短链接访问数据：' + JSON.stringify(props.statsData)
+    console.log('AI调试 - statsData:', internalStatsData.value)
+    console.log('AI调试 - shortLinkInfo:', internalShortLinkInfo.value)
+    if (internalStatsData.value && Object.keys(internalStatsData.value).length > 0) {
+      context = '短链接访问数据：' + JSON.stringify(internalStatsData.value)
     }
-    if (props.shortLinkInfo) {
-      context += '\n短链接信息：' + JSON.stringify(props.shortLinkInfo)
+    if (internalShortLinkInfo.value && internalShortLinkInfo.value.fullShortUrl) {
+      context += '\n短链接信息：' + JSON.stringify(internalShortLinkInfo.value)
     }
 
     const response = await API.ai.chat({
@@ -146,10 +161,12 @@ const sendMessage = async () => {
       context: context
     })
 
-    if (response.code === 0) {
-      messages.value.push({ role: 'assistant', content: response.data })
+    // 解析响应：axios响应的结构是 response.data = {code, data, success}
+    const result = response.data
+    if (result.code === '0' || result.code === 0) {
+      messages.value.push({ role: 'assistant', content: result.data })
     } else {
-      ElMessage.error(response.message || 'AI服务异常')
+      ElMessage.error(result.message || 'AI服务异常')
       messages.value.push({
         role: 'assistant',
         content: '抱歉，AI服务暂时不可用，请稍后再试。'
@@ -194,10 +211,32 @@ watch(() => dialogVisible.value, (val) => {
     nextTick(() => scrollToBottom())
   }
 })
+
+// 暴露方法给父组件调用
+const openDialog = (statsData, shortLinkInfo) => {
+  dialogVisible.value = true
+  // 重置消息
+  messages.value = [
+    {
+      role: 'assistant',
+      content: '您好！我是短链接AI智能分析助手，可以帮您分析短链接的访问数据、解答运营问题。请问有什么可以帮您？'
+    }
+  ]
+  // 设置数据
+  if (statsData) {
+    internalStatsData.value = statsData
+  }
+  if (shortLinkInfo) {
+    internalShortLinkInfo.value = shortLinkInfo
+  }
+}
+
+defineExpose({
+  openDialog
+})
 </script>
 
 <script>
-import { watch } from 'vue'
 export default {
   name: 'AiAssistant'
 }

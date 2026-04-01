@@ -21,8 +21,12 @@ import com.ryh.shortlink.admin.common.convention.result.Result;
 import com.ryh.shortlink.admin.common.convention.result.Results;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 /**
  * AI智能助手控制器
@@ -31,19 +35,31 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/short-link/ai")
+@RequestMapping("/api/short-link/admin/v1/ai")
 public class ShortLinkAiController {
 
     private final RestTemplate restTemplate;
+    private final LoadBalancerClient loadBalancerClient;
 
-    private static final String PROJECT_URL = "http://short-link-project";
+    private static final String PROJECT_SERVICE_NAME = "short-link-project";
+
+    /**
+     * 获取目标服务地址
+     */
+    private String getProjectUrl() {
+        ServiceInstance instance = loadBalancerClient.choose(PROJECT_SERVICE_NAME);
+        if (instance == null) {
+            throw new RuntimeException("无法找到服务: " + PROJECT_SERVICE_NAME);
+        }
+        return "http://" + instance.getHost() + ":" + instance.getPort();
+    }
 
     /**
      * 分析短链接访问统计
      */
     @PostMapping("/analyze")
     public Result<String> analyzeStats(@RequestBody String statsData) {
-        String url = PROJECT_URL + "/api/short-link/ai/analyze";
+        String url = getProjectUrl() + "/api/short-link/ai/analyze";
         try {
             String result = restTemplate.postForObject(url, statsData, String.class);
             return Results.success(result);
@@ -60,19 +76,17 @@ public class ShortLinkAiController {
      * AI智能问答
      */
     @PostMapping("/chat")
-    public Result<String> chat(@RequestParam String question, @RequestParam(required = false) String context) {
-        String url = PROJECT_URL + "/api/short-link/ai/chat?question=" + question;
-        if (context != null && !context.isEmpty()) {
-            url += "&context=" + context;
-        }
+    public Result<String> chat(@RequestBody Map<String, Object> request) {
+        String url = getProjectUrl() + "/api/short-link/ai/chat";
         try {
-            String result = restTemplate.getForObject(url, String.class);
-            return Results.success(result);
+            // 直接返回project的响应，不做二次包装
+            Result<String> result = restTemplate.postForObject(url, request, Result.class);
+            return result;
         } catch (Exception e) {
             log.error("AI问答失败", e);
             Result<String> result = new Result<>();
             result.setCode("500");
-            result.setMessage("AI服务调用失败");
+            result.setMessage("AI服务调用失败: " + e.getMessage());
             return result;
         }
     }
@@ -81,20 +95,17 @@ public class ShortLinkAiController {
      * 生成短链接描述建议
      */
     @PostMapping("/suggest")
-    public Result<String> suggestDescription(@RequestParam String originUrl,
-                                           @RequestParam(required = false) String statsData) {
-        String url = PROJECT_URL + "/api/short-link/ai/suggest?originUrl=" + originUrl;
-        if (statsData != null && !statsData.isEmpty()) {
-            url += "&statsData=" + statsData;
-        }
+    public Result<String> suggestDescription(@RequestBody Map<String, Object> request) {
+        String url = getProjectUrl() + "/api/short-link/ai/suggest";
         try {
-            String result = restTemplate.getForObject(url, String.class);
-            return Results.success(result);
+            // 直接返回project的响应，不做二次包装
+            Result<String> result = restTemplate.postForObject(url, request, Result.class);
+            return result;
         } catch (Exception e) {
             log.error("AI建议失败", e);
             Result<String> result = new Result<>();
             result.setCode("500");
-            result.setMessage("AI服务调用失败");
+            result.setMessage("AI服务调用失败: " + e.getMessage());
             return result;
         }
     }

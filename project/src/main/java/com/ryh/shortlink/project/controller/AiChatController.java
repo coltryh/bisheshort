@@ -1,6 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.ryh.shortlink.project.controller;
 
-import com.ryh.shortlink.project.common.results.Results;
+import com.ryh.shortlink.project.common.convention.result.Result;
+import com.ryh.shortlink.project.common.convention.result.Results;
 import com.ryh.shortlink.project.entity.AiConversation;
 import com.ryh.shortlink.project.entity.AiMessage;
 import com.ryh.shortlink.project.service.AiChatService;
@@ -24,7 +42,7 @@ public class AiChatController {
      * 创建新对话
      */
     @PostMapping("/conversations")
-    public Results<AiConversation> createConversation(@RequestBody Map<String, Object> request) {
+    public Result<AiConversation> createConversation(@RequestBody Map<String, Object> request) {
         Long userId = getCurrentUserId(request);
         AiConversation conversation = chatService.createConversation(userId);
         return Results.success(conversation);
@@ -34,7 +52,7 @@ public class AiChatController {
      * 获取用户的所有对话
      */
     @GetMapping("/conversations")
-    public Results<List<AiConversation>> getConversations(@RequestParam(required = false) Long userId) {
+    public Result<List<AiConversation>> getConversations(@RequestParam(required = false) Long userId) {
         if (userId == null) {
             userId = 1L;
         }
@@ -46,10 +64,10 @@ public class AiChatController {
      * 获取对话详情
      */
     @GetMapping("/conversations/{id}")
-    public Results<AiConversation> getConversation(@PathVariable("id") Long id) {
+    public Result<AiConversation> getConversation(@PathVariable("id") Long id) {
         AiConversation conversation = chatService.getConversation(id);
         if (conversation == null) {
-            return Results.fail("对话不存在");
+            return new Result<AiConversation>().setCode("0").setMessage("对话不存在");
         }
         return Results.success(conversation);
     }
@@ -58,7 +76,7 @@ public class AiChatController {
      * 获取对话消息列表
      */
     @GetMapping("/conversations/{id}/messages")
-    public Results<List<AiMessage>> getMessages(@PathVariable("id") Long conversationId) {
+    public Result<List<AiMessage>> getMessages(@PathVariable("id") Long conversationId) {
         List<AiMessage> messages = chatService.getConversationMessages(conversationId);
         return Results.success(messages);
     }
@@ -67,7 +85,7 @@ public class AiChatController {
      * 发送消息
      */
     @PostMapping("/chat")
-    public Results<AiChatService.ChatResult> chat(@RequestBody Map<String, Object> request) {
+    public Result<AiChatService.ChatResult> chat(@RequestBody Map<String, Object> request) {
         Long conversationId = null;
         if (request.containsKey("conversationId")) {
             Object cid = request.get("conversationId");
@@ -80,7 +98,7 @@ public class AiChatController {
         Long userId = getCurrentUserId(request);
 
         if (content == null || content.trim().isEmpty()) {
-            return Results.fail("消息内容不能为空");
+            return new Result<AiChatService.ChatResult>().setCode("0").setMessage("消息内容不能为空");
         }
 
         AiChatService.ChatResult result = chatService.sendMessage(conversationId, content.trim(), userId);
@@ -91,17 +109,20 @@ public class AiChatController {
      * 删除对话
      */
     @DeleteMapping("/conversations/{id}")
-    public Results<Boolean> deleteConversation(@PathVariable("id") Long id, @RequestBody Map<String, Object> request) {
+    public Result<Boolean> deleteConversation(@PathVariable("id") Long id, @RequestBody Map<String, Object> request) {
         Long userId = getCurrentUserId(request);
         boolean success = chatService.deleteConversation(id, userId);
-        return success ? Results.success(true) : Results.fail("删除失败");
+        if (success) {
+            return Results.success(true);
+        }
+        return new Result<Boolean>().setCode("0").setMessage("删除失败");
     }
 
     /**
      * 重命名对话
      */
     @PutMapping("/conversations/{id}")
-    public Results<Boolean> renameConversation(
+    public Result<Boolean> renameConversation(
             @PathVariable("id") Long id,
             @RequestBody Map<String, Object> request
     ) {
@@ -109,11 +130,14 @@ public class AiChatController {
         Long userId = getCurrentUserId(request);
 
         if (title == null || title.trim().isEmpty()) {
-            return Results.fail("标题不能为空");
+            return new Result<Boolean>().setCode("0").setMessage("标题不能为空");
         }
 
         boolean success = chatService.renameConversation(id, title.trim(), userId);
-        return success ? Results.success(true) : Results.fail("重命名失败");
+        if (success) {
+            return Results.success(true);
+        }
+        return new Result<Boolean>().setCode("0").setMessage("重命名失败");
     }
 
     /**

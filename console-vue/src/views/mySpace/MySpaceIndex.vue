@@ -230,7 +230,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="操作" width="180">
+          <el-table-column fixed="right" label="操作" width="220">
             <template #default="scope">
               <div style="display: flex; align-items: center">
                 <!-- <el-link
@@ -245,6 +245,12 @@
                 <el-tooltip show-after="500" class="box-item" effect="dark" content="查看图表" placement="bottom-end">
                   <el-icon class="table-edit" @click="chartsVisible(scope.row)">
                     <Histogram />
+                  </el-icon>
+                </el-tooltip>
+                <!-- AI分析按钮 -->
+                <el-tooltip show-after="500" class="box-item" effect="dark" content="AI分析" placement="bottom-end">
+                  <el-icon class="table-edit" @click="openAiAnalysis(scope.row)">
+                    <MagicStick />
                   </el-icon>
                 </el-tooltip>
                 <!-- 正常页面展示编辑和删除 -->
@@ -361,7 +367,7 @@
     </el-dialog>
 
     <!-- AI智能助手 -->
-    <AiAssistant :statsData="chartsInfo" :shortLinkInfo="visitLink" />
+    <AiAssistant ref="aiAssistantRef" />
   </div>
 </template>
 
@@ -388,6 +394,7 @@ const orderIndex = ref(0)
 const { proxy } = getCurrentInstance()
 const API = proxy.$API
 const chartsInfoRef = ref()
+const aiAssistantRef = ref()
 const chartsInfoTitle = ref()
 const chartsInfo = ref()
 const tableInfo = ref()
@@ -431,6 +438,22 @@ const visitLink = {
 const isGroup = ref(false)
 const tableFullShortUrl = ref()
 const tableGid = ref()
+
+// AI分析 - 打开AI对话框并传递当前行数据
+const openAiAnalysis = async (rowInfo) => {
+  // 先加载该链接的统计数据，等待完成
+  await chartsVisible(rowInfo)
+  // 调试：检查加载后的数据
+  console.log('AI分析调试 - chartsInfo.value:', chartsInfo.value)
+  console.log('AI分析调试 - rowInfo:', rowInfo)
+  // 数据加载完成后打开AI对话框
+  aiAssistantRef.value?.openDialog(chartsInfo.value, {
+    fullShortUrl: rowInfo.fullShortUrl,
+    gid: rowInfo.gid,
+    enableStatus: rowInfo.enableStatus
+  })
+}
+
 // 点击查看数据图表
 const chartsVisible = async (rowInfo, dateList) => {
   chartsInfoTitle.value = rowInfo?.describe
@@ -464,8 +487,12 @@ const chartsVisible = async (rowInfo, dateList) => {
     tableRes = await API.smallLinkPage.queryLinkTable({ gid, fullShortUrl, ...statsFormData, enableStatus })
   }
   tableInfo.value = tableRes
+  // 调试：检查API返回的原始数据
+  console.log('chartsVisible调试 - res:', res)
+  console.log('chartsVisible调试 - res?.data:', res?.data)
+  console.log('chartsVisible调试 - res?.data?.data:', res?.data?.data)
   chartsInfo.value = res?.data?.data
-  // debugger
+  console.log('chartsVisible调试 - chartsInfo.value:', chartsInfo.value)
 }
 // 图表修改时间后重新请求数
 const changeTimeData = async (rowInfo, dateList) => {

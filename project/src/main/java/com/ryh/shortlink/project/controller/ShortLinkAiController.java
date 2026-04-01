@@ -17,12 +17,14 @@
 
 package com.ryh.shortlink.project.controller;
 
-import com.ryh.shortlink.project.ai.ZhipuAiClient;
+import com.ryh.shortlink.project.ai.MiniMaxAiClient;
 import com.ryh.shortlink.project.common.convention.result.Result;
 import com.ryh.shortlink.project.common.convention.result.Results;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * AI智能助手控制器
@@ -34,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/short-link/ai")
 public class ShortLinkAiController {
 
-    private final ZhipuAiClient zhipuAiClient;
+    private final MiniMaxAiClient miniMaxAiClient;
 
     /**
      * 分析短链接访问统计
@@ -43,7 +45,7 @@ public class ShortLinkAiController {
     @PostMapping("/analyze")
     public Result<String> analyzeStats(@RequestBody String statsData) {
         log.info("AI分析短链接统计: {}", statsData);
-        String analysis = zhipuAiClient.analyzeStats(statsData);
+        String analysis = miniMaxAiClient.analyzeStats(statsData);
         return Results.success(analysis);
     }
 
@@ -52,10 +54,11 @@ public class ShortLinkAiController {
      * 根据原始链接和访问数据，AI推荐合适的描述
      */
     @PostMapping("/suggest")
-    public Result<String> suggestDescription(@RequestParam String originUrl,
-                                            @RequestParam(required = false) String statsData) {
+    public Result<String> suggestDescription(@RequestBody Map<String, Object> request) {
+        String originUrl = (String) request.get("originUrl");
+        String statsData = request.get("statsData") != null ? request.get("statsData").toString() : null;
         log.info("AI生成描述建议: {}", originUrl);
-        String suggestion = zhipuAiClient.suggestDescription(originUrl, statsData);
+        String suggestion = miniMaxAiClient.suggestDescription(originUrl, statsData);
         return Results.success(suggestion);
     }
 
@@ -64,10 +67,11 @@ public class ShortLinkAiController {
      * 用户可以向AI提问关于短链接的任何问题
      */
     @PostMapping("/chat")
-    public Result<String> chat(@RequestParam String question,
-                               @RequestParam(required = false) String context) {
+    public Result<String> chat(@RequestBody Map<String, Object> request) {
+        String question = (String) request.get("question");
+        String context = request.get("context") != null ? request.get("context").toString() : null;
         log.info("AI问答: {}", question);
-        String answer = zhipuAiClient.answer(question, context);
+        String answer = miniMaxAiClient.answer(question, context);
         return Results.success(answer);
     }
 
@@ -78,7 +82,7 @@ public class ShortLinkAiController {
     public Result<String> batchAnalyze(@RequestBody String shortLinksData) {
         log.info("AI批量分析短链接");
         String prompt = "请分析以下多个短链接的访问情况，并给出对比分析：\n\n" + shortLinksData;
-        String analysis = zhipuAiClient.chat(prompt);
+        String analysis = miniMaxAiClient.chat(prompt);
         return Results.success(analysis);
     }
 }

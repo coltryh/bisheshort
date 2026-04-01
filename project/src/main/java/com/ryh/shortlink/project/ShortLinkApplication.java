@@ -28,7 +28,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@MapperScan("com.ryh.shortlink.project.dao.mapper")
+@MapperScan({"com.ryh.shortlink.project.dao.mapper", "com.ryh.shortlink.project.dao"})
 public class ShortLinkApplication {
 
     public static void main(String[] args) {

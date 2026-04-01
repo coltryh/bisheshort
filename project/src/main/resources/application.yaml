@@ -11,7 +11,7 @@ spring:
     redis:
       host: 106.12.146.146
       port: 6379
-      password: 123456
+      password: Ryh3.1415926
   mvc:
     view:
       prefix: /templates/
@@ -42,8 +42,17 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
 
-# 智谱AI配置（用于AI分析功能）
-ai:
-  zhipu:
-    api-key: 8122ebf4b33649c69997828b67bd7cb7.jKGnxhwa0X3JMcd2
-    chat-model: glm-4-flash
+# MiniMax AI配置（用于RAG和AI对话功能）
+minimax:
+  api-key: sk-cp-ci7wMCIWzMmkymTp0VdexCloEVWjevQZ-OqJzHzpcMPfYMPbRWHUzP50_QbSREsD7UTszpw4O1fEMU8T2-qaORrvGdnr7f-La3dJ7Qd7uw85sxgk349JAl0
+  group-id: 2022478885660140272
+  base-url: https://api.minimaxi.com/v1
+  chat-model: MiniMax-M2.7
+  embedding-model: emb-01
+
+# Embedding服务配置
+embedding:
+  base-url: http://localhost:5000
+  connect-timeout: 5000
+  read-timeout: 30000
+  search-top-k: 5
