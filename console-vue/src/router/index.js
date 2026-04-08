@@ -23,17 +23,28 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          // 前面不能加/
           path: 'space',
           name: 'MySpace',
           component: () => import('@/views/mySpace/MySpaceIndex.vue'),
           meta: { title: '我的空间', requiresAuth: true }
         },
         {
+          path: 'stats',
+          name: 'StatsCenter',
+          component: () => import('@/views/stats/StatsCenter.vue'),
+          meta: { title: '图表中心', requiresAuth: true }
+        },
+        {
+          path: 'ai',
+          name: 'AiAnalyze',
+          component: () => import('@/views/ai/AiAnalyze.vue'),
+          meta: { title: 'AI分析', requiresAuth: true }
+        },
+        {
           path: 'recycleBin',
           name: 'RecycleBin',
           component: () => import('@/views/recycleBin/RecycleBinIndex.vue'),
-          meta: { title: '账户设置', requiresAuth: true }
+          meta: { title: '回收站', requiresAuth: true }
         },
         {
           path: 'account',
@@ -42,10 +53,16 @@ const router = createRouter({
           meta: { title: '个人中心', requiresAuth: true }
         },
         {
-          path: 'ai',
-          name: 'AiChat',
-          component: () => import('@/views/ai/AiChatIndex.vue'),
-          meta: { title: 'AI助手', requiresAuth: true }
+          path: 'admin/user',
+          name: 'UserManage',
+          component: () => import('@/views/admin/UserManage.vue'),
+          meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'admin/permission',
+          name: 'PermissionManage',
+          component: () => import('@/views/admin/PermissionManage.vue'),
+          meta: { title: '权限管理', requiresAuth: true, requiresAdmin: true }
         }
       ]
     }

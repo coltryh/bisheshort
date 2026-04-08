@@ -19,7 +19,6 @@
         <el-input
           maxlength="100"
           show-word-limit
-          v-loading="isLoading"
           :rows="4"
           v-model="formData.describe"
           type="textarea"
@@ -72,7 +71,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted, nextTick, watch, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { reactive, ref, watch, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useStore } from 'vuex'
 
@@ -83,8 +82,6 @@ const props = defineProps({
   isSingle: Boolean, // 单个创建传true， 批量创建传false,
   defaultGid: String
 })
-const { proxy } = getCurrentInstance()
-const API = proxy.$API
 // url的校验规则
 const reg =
   /^(https?:\/\/(([a-zA-Z0-9]+-?)+[a-zA-Z0-9]+\.)+(([a-zA-Z0-9]+-?)+[a-zA-Z0-9]+))(:\d+)?(\/.*)?(\?.*)?(#.*)?$/
@@ -145,39 +142,10 @@ const initFormData = () => {
 const maxOriginUrlRows = ref(100) // 最多多少行
 // 链接有多少行
 const originUrlRows = ref(0)
-// 防抖
-const fd = (fn, delay) => {
-  let timer = null
-  return function (url) {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
-    timer = setTimeout(() => {
-      fn(url)
-    }, delay)
-  }
-}
-const isLoading = ref(false)
-const queryTitle = (url) => {
-  if (reg.test(url)) {
-    isLoading.value = true
-    API.smallLinkPage.queryTitle({ url: url }).then((res) => {
-      formData.describe = res?.data?.data
-      isLoading.value = false
-    })
-  }
-}
-const getTitle = fd(queryTitle, 1000)
 watch(
   () => formData.originUrl,
   (nV) => {
     originUrlRows.value = (nV || '').split(/\r|\r\n|\n/)?.length ?? 0
-    // 只有在描述内容为空时才会去查询链接对应的标题
-    if (!formData.describe) {
-      // 外边包一层防抖
-      getTitle(nV)
-    }
   }
 )
 const maxDescribeRows = ref(100) // 最多多少行

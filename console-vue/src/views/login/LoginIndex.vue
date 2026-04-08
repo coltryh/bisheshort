@@ -241,6 +241,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as THREE from 'three'
 import WAVES from 'vanta/src/vanta.waves'
+import allinoneAPI from '@/api/modules/allinone.js'
+
 const { proxy } = getCurrentInstance()
 const API = proxy.$API
 const loginFormRef1 = ref()
@@ -297,29 +299,25 @@ const addUser = (formEl) => {
   if (!formEl) return
   formEl.validate(async (valid) => {
     if (valid) {
-      // 检测用户名是否已经存在
-      const res1 = await API.user.hasUsername({ username: addForm.username })
-      if (res1.data.success !== false) {
-        // 注册
-        const res2 = await API.user.addUser(addForm)
-        // console.log(res2)
-        if (res2.data.success === false) {
-          ElMessage.warning(res2.data.message)
-        } else {
-          const res3 = await API.user.login({ username: addForm.username, password: addForm.password })
-          const token = res3?.data?.data?.token
-          // 将username和token保存到cookies中和localStorage中
-          if (token) {
-            setToken(token)
-            setUsername(addForm.username)
-            localStorage.setItem('token', token)
-            localStorage.setItem('username', addForm.username)
-          }
-          ElMessage.success('注册登录成功！')
-          router.push('/home')
+      // 注册
+      const res2 = await allinoneAPI.register(addForm)
+      if (res2.data.code === '0') {
+        // 注册成功后自动登录
+        const res3 = await allinoneAPI.login({ username: addForm.username, password: addForm.password })
+        const token = res3?.data?.data?.token
+        const user = res3?.data?.data?.user
+        // 将username和token保存到cookies中和localStorage中
+        if (token) {
+          setToken(token)
+          setUsername(addForm.username)
+          localStorage.setItem('token', token)
+          localStorage.setItem('username', addForm.username)
+          localStorage.setItem('userInfo', JSON.stringify(user))
         }
+        ElMessage.success('注册登录成功！')
+        router.push('/home')
       } else {
-        ElMessage.warning('用户名已存在！')
+        ElMessage.error(res2.data.message || '注册失败')
       }
     } else {
       return false
@@ -378,29 +376,22 @@ const login = (formEl) => {
   if (!formEl) return
   formEl.validate(async (valid) => {
     if (valid) {
-      const res1 = await API.user.login(loginForm)
+      const res1 = await allinoneAPI.login(loginForm)
       if (res1.data.code === '0') {
         const token = res1?.data?.data?.token
+        const user = res1?.data?.data?.user
         // 将username和token保存到cookies中和localStorage中
         if (token) {
           setToken(token)
           setUsername(loginForm.username)
           localStorage.setItem('token', token)
           localStorage.setItem('username', loginForm.username)
+          localStorage.setItem('userInfo', JSON.stringify(user))
         }
         ElMessage.success('登录成功！')
         router.push('/home')
-      } else if (res1.data.message === '用户已登录') {
-        // 如果已经登录了，判断一下浏览器保存的登录信息是不是再次登录的信息，如果是就正常登录
-        const cookiesUsername = getUsername()
-        if (cookiesUsername === loginForm.username) {
-          ElMessage.success('登录成功！')
-          router.push('/home')
-        } else {
-          ElMessage.warning('用户已在别处登录，请勿重复登录！')
-        }
-      } else if (res1.data.message === '用户不存在') {
-        ElMessage.error('请输入正确的账号密码!')
+      } else {
+        ElMessage.error(res1.data.message || '登录失败')
       }
     } else {
       return false

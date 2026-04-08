@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; height: 100%">
+  <div style="display: flex; height: calc(100vh - 54px); overflow: hidden;">
     <div class="options-box">
       <div class="option-title flex-box">
         <div>
@@ -47,35 +47,20 @@
           </div>
         </li>
       </ul>
-      <div class="recycle-bin">
-        <!-- 当selectIndex等于-1时代表选中的是回收站 -->
-        <div class="recycle-box hover-box" :class="{ selectedItem: selectedIndex === -1 }" @click="recycleBin">
-          回收站
-          <el-icon style="margin-left: 5px; font-size: 20px">
-            <Delete />
-          </el-icon>
-        </div>
-      </div>
     </div>
     <!-- 主要数据展示区域 -->
-    <div class="content-box">
+    <div class="content-box" style="flex: 1; overflow: hidden;">
       <div class="table-box">
         <!-- 默认展示创建短链输入框和按钮 -->
-        <div v-if="!isRecycleBin" class="buttons-box">
+        <div class="buttons-box">
           <div style="width: 100%; display: flex">
-            <!-- <el-input style="flex: 1; margin-right: 20px" placeholder="请输入http://或https://开头的连接或引用跳转程序"></el-input> -->
             <el-button class="addButton organic-btn" type="primary" style="width: 130px; margin-right: 10px"
               @click="isAddSmallLink = true">创建短链</el-button>
             <el-button style="width: 130px; margin-right: 10px" @click="isAddSmallLinks = true">批量创建</el-button>
           </div>
         </div>
-        <!-- 展示回收站信息 -->
-        <div v-else class="recycle-bin-box">
-          <span>回收站</span>
-          <span>共{{ recycleBinNums }}条短链接</span>
-        </div>
         <!-- 表格展示区域 -->
-        <el-table :data="tableData" height="calc(100vh - 240px)" style="width: calc(100vw - 230px)"
+        <el-table :data="tableData" height="calc(100vh - 240px)" style="width: 100%"
           :header-cell-style="{ background: '#F3F4F1', color: '#2C2C24', fontWeight: '600' }">
           <!-- 数据为空时展示的内容 -->
           <template #empty>
@@ -253,45 +238,22 @@
                     <MagicStick />
                   </el-icon>
                 </el-tooltip>
-                <!-- 正常页面展示编辑和删除 -->
-                <template v-if="selectedIndex !== -1">
-                  <!-- 表格中的编辑按钮 -->
-                  <el-tooltip show-after="500" class="box-item" effect="dark" content="编辑" placement="bottom-end">
-                    <el-icon @click="editLink(scope.row)" class="table-edit">
-                      <Tools />
-                    </el-icon>
-                  </el-tooltip>
-                  <!-- 删除按钮 -->
-                  <el-tooltip show-after="500" class="box-item" effect="dark" content="删除" placement="bottom-end">
-                    <el-popconfirm width="100" title="是否移入回收站" @confirm="toRecycleBin(scope.row)">
-                      <template #reference>
-                        <el-icon class="table-edit">
-                          <Delete />
-                        </el-icon>
-                      </template>
-                    </el-popconfirm>
-                  </el-tooltip>
-                </template>
-                <!-- 回收站操作 -->
-                <template v-else>
-                  <!-- 回收站中的恢复按钮 -->
-                  <el-tooltip show-after="500" class="box-item" effect="dark" content="恢复" placement="bottom-end">
-                    <el-icon @click="recoverLink(scope.row)" class="table-edit">
-                      <HelpFilled />
-                    </el-icon>
-                  </el-tooltip>
-                  <!-- 回收站中的删除按钮 -->
-                  <el-tooltip show-after="500" class="box-item" effect="dark" content="删除" placement="bottom-end">
-                    <el-popconfirm width="300" title="删除后短链跳转会失效，同时停止数据统计，这是一个不可逆的操作，是否删除?"
-                      @confirm="removeLink(scope.row)">
-                      <template #reference>
-                        <el-icon class="table-edit">
-                          <Delete />
-                        </el-icon>
-                      </template>
-                    </el-popconfirm>
-                  </el-tooltip>
-                </template>
+                <!-- 表格中的编辑按钮 -->
+                <el-tooltip show-after="500" class="box-item" effect="dark" content="编辑" placement="bottom-end">
+                  <el-icon @click="editLink(scope.row)" class="table-edit">
+                    <Tools />
+                  </el-icon>
+                </el-tooltip>
+                <!-- 删除按钮 -->
+                <el-tooltip show-after="500" class="box-item" effect="dark" content="删除" placement="bottom-end">
+                  <el-popconfirm width="100" title="是否删除" @confirm="deleteLink(scope.row)">
+                    <template #reference>
+                      <el-icon class="table-edit">
+                        <Delete />
+                      </el-icon>
+                    </template>
+                  </el-popconfirm>
+                </el-tooltip>
               </div>
             </template>
           </el-table-column>
@@ -384,6 +346,7 @@ import { ElMessage } from 'element-plus'
 import defaultImg from '@/assets/png/短链默认图标.png'
 import QRCode from './components/qrCode/QRCode.vue'
 import AiAssistant from '@/components/AiAssistant.vue'
+import allinoneAPI from '@/api/modules/allinone.js'
 
 // 查看图表的时候传过去展示的，没什么用
 const nums = ref(0)
@@ -391,8 +354,6 @@ const favicon1 = ref()
 const originUrl1 = ref()
 const orderIndex = ref(0)
 
-const { proxy } = getCurrentInstance()
-const API = proxy.$API
 const chartsInfoRef = ref()
 const aiAssistantRef = ref()
 const chartsInfoTitle = ref()
@@ -443,9 +404,6 @@ const tableGid = ref()
 const openAiAnalysis = async (rowInfo) => {
   // 先加载该链接的统计数据，等待完成
   await chartsVisible(rowInfo)
-  // 调试：检查加载后的数据
-  console.log('AI分析调试 - chartsInfo.value:', chartsInfo.value)
-  console.log('AI分析调试 - rowInfo:', rowInfo)
   // 数据加载完成后打开AI对话框
   aiAssistantRef.value?.openDialog(chartsInfo.value, {
     fullShortUrl: rowInfo.fullShortUrl,
@@ -457,87 +415,28 @@ const openAiAnalysis = async (rowInfo) => {
 // 点击查看数据图表
 const chartsVisible = async (rowInfo, dateList) => {
   chartsInfoTitle.value = rowInfo?.describe
-  // 如果传入的group为true的话就查询分组的数据，如果没传就查询单链的数据
   const { fullShortUrl, gid, group, originUrl, favicon, enableStatus } = rowInfo
   originUrl1.value = originUrl
   favicon1.value = favicon
   isGroup.value = group
   tableFullShortUrl.value = fullShortUrl
   tableGid.value = gid
-  // 后续修改时间的时候拿去用
   visitLink.fullShortUrl = fullShortUrl
   visitLink.gid = gid
   visitLink.enableStatus = enableStatus
   chartsInfoRef?.value.isVisible()
-  // 如果没有时间传值，就默认查找过去一周的数据
-  if (!dateList) {
-    initStatsFormData()
-  } else {
-    // 否则就按照传过来的数据去请求数据
-    statsFormData.startDate = dateList?.[0] + ' 00:00:00'
-    statsFormData.endDate = dateList?.[1] + ' 23:59:59'
-  }
-  let res = null
-  let tableRes = null
-  if (group) {
-    res = await API.group.queryGroupStats({ ...statsFormData, fullShortUrl, gid })
-    tableRes = await API.group.queryGroupTable({ gid, ...statsFormData })
-  } else {
-    res = await API.smallLinkPage.queryLinkStats({ ...statsFormData, fullShortUrl, gid, enableStatus })
-    tableRes = await API.smallLinkPage.queryLinkTable({ gid, fullShortUrl, ...statsFormData, enableStatus })
-  }
-  tableInfo.value = tableRes
-  // 调试：检查API返回的原始数据
-  console.log('chartsVisible调试 - res:', res)
-  console.log('chartsVisible调试 - res?.data:', res?.data)
-  console.log('chartsVisible调试 - res?.data?.data:', res?.data?.data)
-  chartsInfo.value = res?.data?.data
-  console.log('chartsVisible调试 - chartsInfo.value:', chartsInfo.value)
 }
 // 图表修改时间后重新请求数
 const changeTimeData = async (rowInfo, dateList) => {
-  const { fullShortUrl, gid, enableStatus } = rowInfo
-  if (!dateList) {
-    initStatsFormData()
-  } else {
-    // 否则就按照传过来的数据去请求数据
-    statsFormData.startDate = dateList?.[0] + ' 00:00:00'
-    statsFormData.endDate = dateList?.[1] + ' 23:59:59'
-  }
-  let res = null
-  let tableRes = null
-  // 判断是分组还是单个短链接
-  if (isGroup.value) {
-    res = await API.group.queryGroupStats({ ...statsFormData, fullShortUrl, gid })
-    tableRes = await API.group.queryGroupTable({ gid, ...statsFormData })
-  } else {
-    res = await API.smallLinkPage.queryLinkStats({ ...statsFormData, fullShortUrl, gid, enableStatus })
-    tableRes = await API.smallLinkPage.queryLinkTable({ gid, fullShortUrl, ...statsFormData, enableStatus })
-  }
-  tableInfo.value = tableRes
-  chartsInfo.value = res?.data?.data
+  // 统计功能暂时跳过
 }
 // 修改时间
 const changeTime = (dateList) => {
-  changeTimeData(visitLink, dateList)
+  // 统计功能暂时跳过
 }
 // 修改页码信息
 const changePage = async (page) => {
-  const { current, size } = page
-  statsFormData.current = current ?? 1
-  statsFormData.size = size ?? 10
-  let tableRes = null
-  // 判断是分组还是单个短链接
-  if (isGroup.value) {
-    tableRes = await API.group.queryGroupTable({ gid: tableGid.value, ...statsFormData })
-  } else {
-    tableRes = await API.smallLinkPage.queryLinkTable({
-      gid: tableGid.value,
-      fullShortUrl: tableFullShortUrl.value,
-      ...statsFormData
-    })
-  }
-  tableInfo.value = tableRes
+  // 统计功能暂时跳过
 }
 // 将原来的数据转化为拖拽后传给后端的数据格式
 const transformGroupData = (oldIndex, newIndex) => {
@@ -584,8 +483,8 @@ const initSortable = (className) => {
         ) {
           selectedIndex.value = selectedIndex.value + 1
         }
-        const res = await API.group.sortGroup(transformGroupData(oldIndex, newIndex))
-        // console.log('排序后的结果', res)
+        // 排序功能暂时跳过
+        // const res = await allinoneAPI.sortGroup(transformGroupData(oldIndex, newIndex))
       }
     }
   })
@@ -621,27 +520,29 @@ const totalNums = ref(0)
 const queryPage = async () => {
   pageParams.gid = editableTabs.value?.[selectedIndex.value]?.gid
   nums.value = editableTabs.value?.[selectedIndex.value]?.shortLinkCount || 0
-  const res = await API.smallLinkPage.queryPage(pageParams)
-  if (res?.data.success) {
-    tableData.value = res.data?.data?.records
-    totalNums.value = +res.data?.data?.total
+  const res = await allinoneAPI.listLinks(pageParams.gid)
+  if (res?.data.code === '0') {
+    tableData.value = res.data?.data || []
+    totalNums.value = res.data?.data?.length || 0
   } else {
-    ElMessage.error(res?.data.message)
+    ElMessage.error(res?.data.message || '获取数据失败')
   }
 }
 
 const handleSizeChange = () => {
-  !isRecycleBin.value ? queryPage() : queryRecycleBinPage()
+  queryPage()
 }
 
 const handleCurrentChange = () => {
-  !isRecycleBin.value ? queryPage() : queryRecycleBinPage()
+  queryPage()
 }
 
 // 获取分组信息，更新页面的分组模块
 const getGroupInfo = async (fn) => {
-  const res = await API.group.queryGroup()
-  editableTabs.value = res.data?.data?.reverse()
+  const res = await allinoneAPI.listGroups()
+  if (res.data.code === '0') {
+    editableTabs.value = res.data.data ? res.data.data.reverse() : []
+  }
   fn && fn()
 }
 getGroupInfo(queryPage)
@@ -650,33 +551,10 @@ const updatePage = () => {
   getGroupInfo(queryPage)
 }
 
-// 是否展示回收站相关的组件
-const isRecycleBin = ref(false)
-const recycleBinNums = ref(0) // 回收站中的数量
-// 获取回收站页面，gid到时候要删除
-const queryRecycleBinPage = () => {
-  API.smallLinkPage
-    .queryRecycleBin({ current: pageParams.current, size: pageParams.size })
-    .then((res) => {
-      tableData.value = res.data?.data?.records
-      totalNums.value = +res.data?.data?.total
-      recycleBinNums.value = totalNums.value
-    })
-}
-// 点击回收站
-const recycleBin = () => {
-  isRecycleBin.value = true
-  selectedIndex.value = -1 // -1作为回收站，-2作为选中其他
-  pageParams.current = 1
-  pageParams.size = 15
-  // 点击回收站相关的请求
-  queryRecycleBinPage()
-}
 // 点击分组中的选项
 const changeSelectIndex = (index) => {
   selectedIndex.value = index
-  isRecycleBin.value = false
-  // 对应分组的数据请求
+  queryPage()
 }
 // 添加分组相关
 const isAddGroup = ref(false)
@@ -690,25 +568,25 @@ const showAddGroup = () => {
 // 添加分组
 const addGroup = async () => {
   addGroupLoading.value = true
-  const res1 = await API.group.addGroup({ name: newGroupName.value })
-  if (res1?.data.success) {
+  const res1 = await allinoneAPI.createGroup({ name: newGroupName.value })
+  if (res1?.data.code === '0') {
     ElMessage.success('添加成功')
     getGroupInfo(queryPage)
   } else {
-    ElMessage.error(res1?.data.message)
+    ElMessage.error(res1?.data.message || '添加失败')
   }
   isAddGroup.value = false
   addGroupLoading.value = false
 }
 // 删除分组
 const deleteGroup = async (gid) => {
-  const res = await API.group.deleteGroup({ gid })
+  const res = await allinoneAPI.deleteGroup(gid)
   selectedIndex.value = 0
-  if (res.data.success) {
+  if (res.data.code === '0') {
     ElMessage.success('删除成功')
     getGroupInfo(queryPage)
   } else {
-    ElMessage.error(res.data.message)
+    ElMessage.error(res.data.message || '删除失败')
   }
 }
 // 编辑分组
@@ -725,12 +603,12 @@ const showEditGroup = (gid, name) => {
 // 编辑分组标题
 const editGroup = async () => {
   editGroupLoading.value = true
-  const res = await API.group.editGroup({ gid: editGid.value, name: editGroupName.value })
-  if (res.data.success) {
+  const res = await allinoneAPI.updateGroup({ gid: editGid.value, name: editGroupName.value })
+  if (res.data.code === '0') {
     ElMessage.success('编辑成功')
     getGroupInfo(queryPage)
   } else {
-    ElMessage.error('编辑失败')
+    ElMessage.error(res.data.message || '编辑失败')
   }
   isEditGroup.value = false
   editGroupLoading.value = false
@@ -776,7 +654,6 @@ const isEditLink = ref(false) // 是否展示编辑弹框
 const editLinkRef = ref()
 const editData = ref() // 编辑弹框的数据
 const editLink = (data) => {
-  // console.log('data: ---' + data)
   editData.value = data
   isEditLink.value = true
 }
@@ -784,49 +661,16 @@ const editLink = (data) => {
 const coverEditLink = () => {
   isEditLink.value = false
 }
-// 移动到回收站
-const toRecycleBin = (data) => {
-  const { gid, fullShortUrl } = data
-  API.smallLinkPage
-    .toRecycleBin({ gid, fullShortUrl })
+// 删除短链接
+const deleteLink = (data) => {
+  const { id } = data
+  allinoneAPI.deleteLink(id)
     .then((res) => {
-      if (res?.data?.code !== '0') {
-        ElMessage.error(res.data.message)
-      } else {
+      if (res?.data?.code === '0') {
         ElMessage.success('删除成功')
-        getGroupInfo(queryPage)
-      }
-    })
-    .catch((reason) => {
-      ElMessage.error('删除失败')
-    })
-}
-// 回收站中恢复
-const recoverLink = (data) => {
-  const { gid, fullShortUrl } = data
-  API.smallLinkPage
-    .recoverLink({ gid, fullShortUrl })
-    .then((res) => {
-      ElMessage.success('恢复成功')
-      queryRecycleBinPage()
-      // getGroupInfo(queryPage)
-      getGroupInfo()         //修复短链接恢复会报系统执行出错的问题
-    })
-    .catch((reason) => {
-      ElMessage.error('恢复失败')
-    })
-}
-// 从回收站中删除
-const removeLink = (data) => {
-  const { gid, fullShortUrl } = data
-  API.smallLinkPage
-    .removeLink({ gid, fullShortUrl })
-    .then((res) => {
-      if (res?.data?.code !== '0') {
-        ElMessage.error(res.data.message)
+        queryPage()
       } else {
-        ElMessage.success('删除成功')
-        queryRecycleBinPage()
+        ElMessage.error(res.data.message || '删除失败')
       }
     })
     .catch((reason) => {
@@ -900,24 +744,6 @@ const removeLink = (data) => {
       }
     }
   }
-}
-
-.recycle-bin {
-  position: absolute;
-  display: flex;
-  bottom: 0;
-  height: 50px;
-  width: 100%;
-}
-
-.recycle-box {
-  flex: 1;
-  border-top: 1px solid #DED8CF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #78786C;
-  transition: all 0.3s ease;
 }
 
 .edit {
@@ -1017,21 +843,6 @@ const removeLink = (data) => {
       bottom: 4%;
       left: 50%;
       transform: translate(-50%, 0);
-    }
-
-    .recycle-bin-box {
-      height: 64px;
-      display: flex;
-      align-items: center;
-      padding-left: 16px;
-      border-bottom: 1px solid #DED8CF;
-
-      span:nth-child(1) {
-        font-size: 20px;
-        margin-right: 5px;
-        color: #2C2C24;
-        font-weight: 600;
-      }
     }
   }
 }

@@ -1,0 +1,32 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: shortlink-allinone
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  mvc:
+    view:
+      prefix: /templates/
+      suffix: .html
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+
+short-link:
+  domain:
+    default: localhost:8001
+  stats:
+    locale:
+      amap-key: 824c511f0997586ea016f979fdb23087
+
+# MiniMax AI配置（用于AI对话功能）
+minimax:
+  api-key: sk-cp-ci7wMCIWzMmkymTp0VdexCloEVWjevQZ-OqJzHzpcMPfYMPbRWHUzP50_QbSREsD7UTszpw4O1fEMU8T2-qaORrvGdnr7f-La3dJ7Qd7uw85sxgk349JAl0
+  group-id: 2022478885660140272
+  base-url: https://api.minimaxi.com/v1
+  chat-model: MiniMax-M2.7
