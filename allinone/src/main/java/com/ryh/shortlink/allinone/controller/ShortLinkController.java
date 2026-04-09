@@ -1,107 +1,159 @@
 package com.ryh.shortlink.allinone.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
-import com.ryh.shortlink.allinone.dao.entity.ShortLinkDO;
-import com.ryh.shortlink.allinone.service.PermissionService;
+import com.ryh.shortlink.allinone.dto.req.ShortLinkCreateReqDTO;
+import com.ryh.shortlink.allinone.dto.req.ShortLinkPageReqDTO;
+import com.ryh.shortlink.allinone.dto.req.ShortLinkUpdateReqDTO;
+import com.ryh.shortlink.allinone.dto.resp.ShortLinkBatchCreateRespDTO;
+import com.ryh.shortlink.allinone.dto.resp.ShortLinkCreateRespDTO;
+import com.ryh.shortlink.allinone.dto.resp.ShortLinkPageRespDTO;
 import com.ryh.shortlink.allinone.service.ShortLinkService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+/**
+ * 短链接控制器
+ */
 @RestController
 @RequestMapping("/api/link")
 @RequiredArgsConstructor
 public class ShortLinkController {
 
     private final ShortLinkService shortLinkService;
-    private final PermissionService permissionService;
 
+    /**
+     * 分页查询短链接
+     */
+    @GetMapping("/page")
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
+        }
+        try {
+            IPage<ShortLinkPageRespDTO> page = shortLinkService.pageShortLink(requestParam);
+            return Result.success(page);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 根据分组查询短链接列表
+     */
     @GetMapping("/list")
-    public Result<List<ShortLinkDO>> list(@RequestParam(required = false) String gid, HttpSession session) {
+    public Result<?> list(@RequestParam(required = false) String gid, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        List<ShortLinkDO> links;
-        if (gid != null && !gid.isEmpty()) {
-            links = shortLinkService.listByGid(gid);
-        } else if (SessionUtils.isAdmin(session)) {
-            links = shortLinkService.listByUsername(username);
-        } else {
-            links = shortLinkService.listByUsername(username);
+        try {
+            var links = shortLinkService.listByGid(gid);
+            return Result.success(links);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-        return Result.success(links);
     }
 
+    /**
+     * 根据ID获取短链接详情
+     */
     @GetMapping("/{id}")
-    public Result<ShortLinkDO> getById(@PathVariable Long id, HttpSession session) {
+    public Result<?> getById(@PathVariable Long id, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        ShortLinkDO link = shortLinkService.getById(id);
-        if (link == null) {
-            return Result.error("短链接不存在");
+        try {
+            var link = shortLinkService.getById(id);
+            if (link == null) {
+                return Result.error("短链接不存在");
+            }
+            return Result.success(link);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-        return Result.success(link);
     }
 
+    /**
+     * 创建短链接
+     */
     @PostMapping("/save")
-    public Result<?> save(@RequestBody ShortLinkDO shortLink, HttpSession session) {
-        Long userId = SessionUtils.getUserId(session);
-        if (userId == null) {
-            return Result.error("未登录");
+    public Result<ShortLinkCreateRespDTO> create(@RequestBody ShortLinkCreateReqDTO requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
         }
-
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(userId, "LINK_CREATE");
-            if (!hasPermission) {
-                return Result.error("无权限创建短链接");
-            }
+        try {
+            ShortLinkCreateRespDTO result = shortLinkService.createShortLink(requestParam);
+            return Result.success(result);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        boolean success = shortLinkService.save(shortLink);
-        return success ? Result.success() : Result.error("创建失败");
     }
 
+    /**
+     * 批量创建短链接
+     */
+    @PostMapping("/save/batch")
+    public Result<ShortLinkBatchCreateRespDTO> batchCreate(@RequestBody Map<String, Object> requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> originUrls = (List<String>) requestParam.get("originUrls");
+            @SuppressWarnings("unchecked")
+            List<String> describes = (List<String>) requestParam.get("describes");
+            String gid = (String) requestParam.get("gid");
+            Integer createdType = (Integer) requestParam.get("createdType");
+
+            ShortLinkBatchCreateRespDTO result = shortLinkService.batchCreateShortLink(originUrls, describes, gid, createdType);
+            return Result.success(result);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 更新短链接
+     */
     @PutMapping("/update")
-    public Result<?> update(@RequestBody ShortLinkDO shortLink, HttpSession session) {
-        Long userId = SessionUtils.getUserId(session);
-        if (userId == null) {
-            return Result.error("未登录");
+    public Result<?> update(@RequestBody ShortLinkUpdateReqDTO requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
         }
-
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(userId, "LINK_UPDATE");
-            if (!hasPermission) {
-                return Result.error("无权限修改短链接");
-            }
+        try {
+            shortLinkService.updateShortLink(requestParam);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        boolean success = shortLinkService.update(shortLink);
-        return success ? Result.success() : Result.error("更新失败");
     }
 
-    @DeleteMapping("/delete/{id}")
-    public Result<?> delete(@PathVariable Long id, HttpSession session) {
-        Long userId = SessionUtils.getUserId(session);
-        if (userId == null) {
-            return Result.error("未登录");
+    /**
+     * 删除短链接到回收站
+     */
+    @DeleteMapping("/delete/{gid}/{fullShortUrl}")
+    public Result<?> delete(@PathVariable String gid, @PathVariable String fullShortUrl, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
         }
-
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(userId, "LINK_DELETE");
-            if (!hasPermission) {
-                return Result.error("无权限删除短链接");
-            }
+        try {
+            shortLinkService.deleteToRecycleBin(gid, fullShortUrl, username);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        boolean success = shortLinkService.delete(id);
-        return success ? Result.success() : Result.error("删除失败");
     }
 }

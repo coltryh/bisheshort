@@ -2,73 +2,77 @@ package com.ryh.shortlink.allinone.controller;
 
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
-import com.ryh.shortlink.allinone.dao.entity.ShortLinkDO;
-import com.ryh.shortlink.allinone.service.PermissionService;
-import com.ryh.shortlink.allinone.service.ShortLinkService;
+import com.ryh.shortlink.allinone.dto.resp.ShortLinkStatsRespDTO;
+import com.ryh.shortlink.allinone.service.StatsService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 统计控制器
+ */
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
 public class StatsController {
 
-    private final ShortLinkService shortLinkService;
-    private final PermissionService permissionService;
+    private final StatsService statsService;
 
+    /**
+     * 获取统计概览
+     */
     @GetMapping("/overview")
-    public Result<Map<String, Object>> overview(HttpSession session) {
+    public Result<ShortLinkStatsRespDTO> getOverview(HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        Long userId = SessionUtils.getUserId(session);
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(userId, "STATS_VIEW");
-            if (!hasPermission) {
-                return Result.error("无权限查看统计");
-            }
+        try {
+            ShortLinkStatsRespDTO overview = statsService.getOverview(username);
+            return Result.success(overview);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        List<ShortLinkDO> links = shortLinkService.listByUsername(username);
-
-        int totalPv = 0;
-        int totalUv = 0;
-        int totalUip = 0;
-
-        for (ShortLinkDO link : links) {
-            totalPv += link.getTotalPv() != null ? link.getTotalPv() : 0;
-            totalUv += link.getTotalUv() != null ? link.getTotalUv() : 0;
-            totalUip += link.getTotalUip() != null ? link.getTotalUip() : 0;
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("totalPv", totalPv);
-        result.put("totalUv", totalUv);
-        result.put("totalUip", totalUip);
-        result.put("linkCount", links.size());
-
-        return Result.success(result);
     }
 
-    @GetMapping("/link/{id}")
-    public Result<ShortLinkDO> linkStats(@PathVariable Long id, HttpSession session) {
+    /**
+     * 获取指定短链接的日访问统计
+     */
+    @GetMapping("/daily")
+    public Result<List<?>> getDailyStats(
+            @RequestParam String fullShortUrl,
+            @RequestParam(defaultValue = "7") int days,
+            HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        ShortLinkDO link = shortLinkService.getById(id);
-        if (link == null) {
-            return Result.error("短链接不存在");
+        try {
+            List<?> stats = statsService.getShortLinkDailyStats(fullShortUrl, days);
+            return Result.success(stats);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
+    }
 
-        return Result.success(link);
+    /**
+     * 获取短链接统计
+     */
+    @GetMapping("/link")
+    public Result<ShortLinkStatsRespDTO> getLinkStats(
+            @RequestParam String fullShortUrl,
+            HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
+        }
+        try {
+            ShortLinkStatsRespDTO stats = statsService.getShortLinkStats(fullShortUrl);
+            return Result.success(stats);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
     }
 }

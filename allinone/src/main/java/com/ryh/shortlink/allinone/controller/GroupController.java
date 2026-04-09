@@ -2,119 +2,113 @@ package com.ryh.shortlink.allinone.controller;
 
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
-import com.ryh.shortlink.allinone.dao.entity.GroupDO;
+import com.ryh.shortlink.allinone.dto.req.ShortLinkGroupSortReqDTO;
+import com.ryh.shortlink.allinone.dto.req.ShortLinkGroupUpdateReqDTO;
+import com.ryh.shortlink.allinone.dto.resp.ShortLinkGroupRespDTO;
 import com.ryh.shortlink.allinone.service.GroupService;
-import com.ryh.shortlink.allinone.service.PermissionService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
+/**
+ * 分组控制器
+ */
 @RestController
 @RequestMapping("/api/group")
 @RequiredArgsConstructor
 public class GroupController {
 
     private final GroupService groupService;
-    private final PermissionService permissionService;
 
+    /**
+     * 查询用户的所有分组（带短链接数量）
+     */
     @GetMapping("/list")
-    public Result<List<GroupDO>> list(HttpSession session) {
+    public Result<List<ShortLinkGroupRespDTO>> list(HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        List<GroupDO> groups;
-        if (SessionUtils.isAdmin(session)) {
-            groups = groupService.listAll();
-        } else {
-            groups = groupService.listByUsername(username);
+        try {
+            List<ShortLinkGroupRespDTO> groups = groupService.listGroup(username);
+            return Result.success(groups);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-        return Result.success(groups);
     }
 
-    @GetMapping("/{gid}")
-    public Result<GroupDO> getByGid(@PathVariable String gid, HttpSession session) {
-        String username = SessionUtils.getUsername(session);
-        if (username == null) {
-            return Result.error("未登录");
-        }
-
-        GroupDO group = groupService.getByGid(gid);
-        if (group == null) {
-            return Result.error("分组不存在");
-        }
-
-        if (!SessionUtils.isAdmin(session) && !username.equals(group.getUsername())) {
-            return Result.error("无权限");
-        }
-
-        return Result.success(group);
-    }
-
+    /**
+     * 创建分组
+     */
     @PostMapping("/save")
-    public Result<?> save(@RequestBody GroupDO group, HttpSession session) {
+    public Result<?> save(@RequestBody Map<String, String> requestParam, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(SessionUtils.getUserId(session), "LINK_CREATE");
-            if (!hasPermission) {
-                return Result.error("无权限创建分组");
+        try {
+            String groupName = requestParam.get("name");
+            if (groupName == null || groupName.isEmpty()) {
+                return Result.error("分组名称不能为空");
             }
+            groupService.saveGroup(username, groupName);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        group.setGid(UUID.randomUUID().toString().replace("-", "").substring(0, 8));
-        group.setUsername(username);
-        boolean success = groupService.save(group);
-        return success ? Result.success() : Result.error("创建失败");
     }
 
+    /**
+     * 更新分组
+     */
     @PutMapping("/update")
-    public Result<?> update(@RequestBody GroupDO group, HttpSession session) {
+    public Result<?> update(@RequestBody ShortLinkGroupUpdateReqDTO requestParam, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        GroupDO existing = groupService.getByGid(group.getGid());
-        if (existing == null) {
-            return Result.error("分组不存在");
+        try {
+            groupService.updateGroup(requestParam);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        if (!SessionUtils.isAdmin(session) && !username.equals(existing.getUsername())) {
-            return Result.error("无权限");
-        }
-
-        boolean success = groupService.update(group);
-        return success ? Result.success() : Result.error("更新失败");
     }
 
+    /**
+     * 删除分组
+     */
     @DeleteMapping("/delete/{gid}")
     public Result<?> delete(@PathVariable String gid, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
-            return Result.error("未登录");
+            return Result.error("请先登录");
         }
-
-        GroupDO existing = groupService.getByGid(gid);
-        if (existing == null) {
-            return Result.error("分组不存在");
+        try {
+            groupService.deleteGroup(gid, username);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
+    }
 
-        if (!SessionUtils.isAdmin(session)) {
-            boolean hasPermission = permissionService.hasPermission(SessionUtils.getUserId(session), "LINK_DELETE");
-            if (!hasPermission) {
-                return Result.error("无权限删除分组");
-            }
+    /**
+     * 排序分组
+     */
+    @PutMapping("/sort")
+    public Result<?> sort(@RequestBody List<ShortLinkGroupSortReqDTO> requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
         }
-
-        boolean success = groupService.delete(gid, username);
-        return success ? Result.success() : Result.error("删除失败");
+        try {
+            groupService.sortGroup(requestParam, username);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
     }
 }

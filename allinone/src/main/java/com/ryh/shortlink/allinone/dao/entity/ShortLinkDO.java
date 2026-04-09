@@ -39,6 +39,7 @@ public class ShortLinkDO implements Serializable {
 
     private Date validDate;
 
+    @TableField("`describe`")
     private String describe;
 
     private Integer totalPv;
