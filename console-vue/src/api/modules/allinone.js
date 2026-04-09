@@ -145,7 +145,7 @@ export default {
     // 短链接列表
     listLinks(gid) {
         return http({
-            url: '/link/list',
+            url: '/short-link/admin/v1/list',
             method: 'get',
             params: gid ? { gid } : {}
         })
@@ -153,7 +153,7 @@ export default {
     // 创建短链接
     createLink(data) {
         return http({
-            url: '/link/save',
+            url: '/short-link/admin/v1/save',
             method: 'post',
             data
         })
@@ -161,15 +161,15 @@ export default {
     // 更新短链接
     updateLink(data) {
         return http({
-            url: '/link/update',
+            url: '/short-link/admin/v1/update',
             method: 'put',
             data
         })
     },
     // 删除短链接
-    deleteLink(id) {
+    deleteLink(gid, fullShortUrl) {
         return http({
-            url: `/link/delete/${id}`,
+            url: `/short-link/admin/v1/delete/${gid}/${fullShortUrl}`,
             method: 'delete'
         })
     },

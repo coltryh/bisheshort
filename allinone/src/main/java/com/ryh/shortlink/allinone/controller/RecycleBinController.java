@@ -1,6 +1,7 @@
 package com.ryh.shortlink.allinone.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ryh.shortlink.allinone.common.annotation.RequireRole;
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
 import com.ryh.shortlink.allinone.dto.resp.ShortLinkPageRespDTO;
@@ -27,6 +28,7 @@ public class RecycleBinController {
      * 分页查询回收站短链接
      */
     @GetMapping("/list")
+    @RequireRole("admin")
     public Result<IPage<ShortLinkPageRespDTO>> list(
             @RequestParam(required = false, defaultValue = "1") Long current,
             @RequestParam(required = false, defaultValue = "10") Long size,
@@ -53,6 +55,7 @@ public class RecycleBinController {
      * 恢复短链接
      */
     @PostMapping("/recover/{id}")
+    @RequireRole("admin")
     public Result<?> recover(@PathVariable Long id, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
@@ -70,6 +73,7 @@ public class RecycleBinController {
      * 永久删除短链接
      */
     @DeleteMapping("/remove/{id}")
+    @RequireRole("admin")
     public Result<?> remove(@PathVariable Long id, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {

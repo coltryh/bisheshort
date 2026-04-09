@@ -61,7 +61,9 @@ public class AiController {
             return Result.error("消息不能为空");
         }
 
-        String response = aiService.chat(username, message);
+        String context = params.get("context");
+
+        String response = aiService.chat(username, message, context);
         return Result.success(response);
     }
 }

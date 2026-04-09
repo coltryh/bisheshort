@@ -48,9 +48,4 @@ public class MiniMaxConfig {
      * 聊天模型
      */
     private String chatModel = "MiniMax-M2.7";
-
-    /**
-     * Embedding 模型
-     */
-    private String embeddingModel = "embo-01";
 }

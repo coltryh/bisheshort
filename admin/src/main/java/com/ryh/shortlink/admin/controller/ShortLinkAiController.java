@@ -61,13 +61,22 @@ public class ShortLinkAiController {
     public Result<String> analyzeStats(@RequestBody String statsData) {
         String url = getProjectUrl() + "/api/short-link/ai/analyze";
         try {
-            String result = restTemplate.postForObject(url, statsData, String.class);
-            return Results.success(result);
+            String projectResponse = restTemplate.postForObject(url, statsData, String.class);
+            com.alibaba.fastjson2.JSONObject jsonResult = com.alibaba.fastjson2.JSON.parseObject(projectResponse);
+            String code = jsonResult.getString("code");
+            String data = jsonResult.getString("data");
+            String message = jsonResult.getString("message");
+
+            Result<String> result = new Result<>();
+            result.setCode(code);
+            result.setData(data);
+            result.setMessage(message);
+            return result;
         } catch (Exception e) {
             log.error("AI分析失败", e);
             Result<String> result = new Result<>();
             result.setCode("500");
-            result.setMessage("AI服务调用失败");
+            result.setMessage("AI服务调用失败: " + e.getMessage());
             return result;
         }
     }
@@ -79,8 +88,18 @@ public class ShortLinkAiController {
     public Result<String> chat(@RequestBody Map<String, Object> request) {
         String url = getProjectUrl() + "/api/short-link/ai/chat";
         try {
-            // 直接返回project的响应，不做二次包装
-            Result<String> result = restTemplate.postForObject(url, request, Result.class);
+            // 使用 String 接收响应，避免泛型擦除问题
+            String projectResponse = restTemplate.postForObject(url, request, String.class);
+            // 解析 project 返回的 JSON，获取 data 字段
+            com.alibaba.fastjson2.JSONObject jsonResult = com.alibaba.fastjson2.JSON.parseObject(projectResponse);
+            String code = jsonResult.getString("code");
+            String data = jsonResult.getString("data");
+            String message = jsonResult.getString("message");
+
+            Result<String> result = new Result<>();
+            result.setCode(code);
+            result.setData(data);
+            result.setMessage(message);
             return result;
         } catch (Exception e) {
             log.error("AI问答失败", e);
@@ -98,8 +117,16 @@ public class ShortLinkAiController {
     public Result<String> suggestDescription(@RequestBody Map<String, Object> request) {
         String url = getProjectUrl() + "/api/short-link/ai/suggest";
         try {
-            // 直接返回project的响应，不做二次包装
-            Result<String> result = restTemplate.postForObject(url, request, Result.class);
+            String projectResponse = restTemplate.postForObject(url, request, String.class);
+            com.alibaba.fastjson2.JSONObject jsonResult = com.alibaba.fastjson2.JSON.parseObject(projectResponse);
+            String code = jsonResult.getString("code");
+            String data = jsonResult.getString("data");
+            String message = jsonResult.getString("message");
+
+            Result<String> result = new Result<>();
+            result.setCode(code);
+            result.setData(data);
+            result.setMessage(message);
             return result;
         } catch (Exception e) {
             log.error("AI建议失败", e);

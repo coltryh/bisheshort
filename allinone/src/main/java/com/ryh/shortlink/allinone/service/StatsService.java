@@ -23,4 +23,9 @@ public interface StatsService {
      * 获取短链接的UV/PV/UIP统计
      */
     ShortLinkStatsRespDTO getShortLinkStats(String fullShortUrl);
+
+    /**
+     * 记录短链接访问
+     */
+    void recordAccess(String fullShortUrl, String uv, String ip, String device, String os, String browser, String network, String country, String province, String city);
 }

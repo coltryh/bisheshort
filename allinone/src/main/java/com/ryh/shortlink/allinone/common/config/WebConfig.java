@@ -2,17 +2,26 @@ package com.ryh.shortlink.allinone.common.config;
 
 import com.ryh.shortlink.allinone.common.filter.CorsFilter;
 import com.ryh.shortlink.allinone.common.filter.PerformanceFilter;
+import com.ryh.shortlink.allinone.common.interceptor.RoleInterceptor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Web配置
  */
 @Configuration
 @EnableAsync
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
+
+    private final RoleInterceptor roleInterceptor;
+
+    public WebConfig(RoleInterceptor roleInterceptor) {
+        this.roleInterceptor = roleInterceptor;
+    }
 
     /**
      * 注册CORS过滤器
@@ -38,5 +47,11 @@ public class WebConfig {
         registration.setName("performanceFilter");
         registration.setOrder(2);
         return registration;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(roleInterceptor)
+                .addPathPatterns("/api/**");
     }
 }

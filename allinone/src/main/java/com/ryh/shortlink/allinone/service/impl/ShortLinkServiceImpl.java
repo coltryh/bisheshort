@@ -253,6 +253,26 @@ public class ShortLinkServiceImpl implements ShortLinkService {
     }
 
     @Override
+    public ShortLinkDO getById(Long id) {
+        return shortLinkMapper.selectById(id);
+    }
+
+    @Override
+    public List<ShortLinkDO> listByUsername(String username) {
+        // 获取用户的分组
+        List<GroupDO> groups = groupService.listByUsername(username);
+        if (groups.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> gidList = groups.stream().map(GroupDO::getGid).toList();
+        // 查询该用户的所有短链接
+        LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                .in(ShortLinkDO::getGid, gidList)
+                .eq(ShortLinkDO::getDelFlag, 0);
+        return shortLinkMapper.selectList(queryWrapper);
+    }
+
+    @Override
     public boolean save(ShortLinkDO shortLink) {
         return shortLinkMapper.insert(shortLink) > 0;
     }

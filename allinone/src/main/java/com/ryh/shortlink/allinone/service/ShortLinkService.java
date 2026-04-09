@@ -47,6 +47,16 @@ public interface ShortLinkService {
     ShortLinkDO getByFullShortUrl(String fullShortUrl);
 
     /**
+     * 根据ID查询
+     */
+    ShortLinkDO getById(Long id);
+
+    /**
+     * 根据用户名查询短链接列表
+     */
+    List<ShortLinkDO> listByUsername(String username);
+
+    /**
      * 保存短链接
      */
     boolean save(ShortLinkDO shortLink);

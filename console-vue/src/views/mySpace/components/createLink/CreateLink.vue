@@ -71,9 +71,12 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, onBeforeUnmount } from 'vue'
+import { reactive, ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useStore } from 'vuex'
+
+const { proxy } = getCurrentInstance()
+const API = proxy.$API
 
 const store = useStore()
 const defaultDomain = store.state.domain ?? ' '

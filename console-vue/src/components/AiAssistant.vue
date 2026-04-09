@@ -1,15 +1,13 @@
 <template>
   <div class="ai-assistant">
-    <!-- AI助手按钮 -->
+    <!-- AI浮动按钮 -->
     <el-button
-      type="primary"
-      :icon="Robot"
-      circle
-      size="large"
       class="ai-float-btn"
       @click="dialogVisible = true"
       title="AI智能分析"
-    ></el-button>
+    >
+      <el-icon size="24"><ChatDotRound /></el-icon>
+    </el-button>
 
     <!-- AI对话框 -->
     <el-dialog
@@ -27,48 +25,39 @@
             :class="['message', msg.role]"
           >
             <div class="message-avatar">
-              <el-icon v-if="msg.role === 'user'"><User /></el-icon>
-              <el-icon v-else><Robot /></el-icon>
+              <el-icon v-if="msg.role === 'assistant'" size="20"><ChatDotRound /></el-icon>
+              <el-icon v-else size="20"><User /></el-icon>
             </div>
-            <div class="message-content">
-              <div class="message-text" v-html="formatMessage(msg.content)"></div>
-            </div>
+            <div class="message-content markdown-body" v-html="renderMarkdown(msg.content)"></div>
           </div>
-          <!-- 加载中 -->
-          <div v-if="loading" class="message assistant loading">
+          <div v-if="loading" class="message assistant">
             <div class="message-avatar">
-              <el-icon><Robot /></el-icon>
+              <el-icon size="20"><ChatDotRound /></el-icon>
             </div>
-            <div class="message-content">
-              <span class="loading-text">AI正在分析中...</span>
+            <div class="message-content loading">
+              <span>思考中...</span>
             </div>
           </div>
         </div>
 
         <!-- 快捷操作 -->
-        <div class="quick-actions" v-if="messages.length <= 1">
-          <el-button
-            v-for="action in quickActions"
-            :key="action.label"
-            size="small"
-            @click="handleQuickAction(action)"
-          >
-            {{ action.label }}
-          </el-button>
+        <div class="quick-actions">
+          <el-button size="small" @click="sendQuickAction('分析访问趋势')">分析访问趋势</el-button>
+          <el-button size="small" @click="sendQuickAction('给出优化建议')">优化建议</el-button>
+          <el-button size="small" @click="sendQuickAction('分析用户画像')">用户画像</el-button>
         </div>
 
-        <!-- 输入区域 -->
+        <!-- 输入框 -->
         <div class="input-area">
           <el-input
             v-model="userInput"
             placeholder="请输入您的问题..."
-            :disabled="loading"
             @keyup.enter="sendMessage"
-          >
-            <template #append>
-              <el-button :icon="Promotion" @click="sendMessage" :loading="loading" />
-            </template>
-          </el-input>
+            :disabled="loading"
+          />
+          <el-button type="primary" @click="sendMessage" :disabled="loading || !userInput.trim()">
+            发送
+          </el-button>
         </div>
       </div>
     </el-dialog>
@@ -76,12 +65,22 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
-import { ChatDotRound, Promotion, User } from '@element-plus/icons-vue'
+import { ref, nextTick, watch } from 'vue'
+import { ChatDotRound, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { marked } from 'marked'
 import API from '@/api'
 
-const Robot = ChatDotRound
+const dialogVisible = ref(false)
+const messages = ref([
+  {
+    role: 'assistant',
+    content: '您好！我是短链接AI智能分析助手，可以帮您分析短链接的访问数据、解答运营问题。请问有什么可以帮您？'
+  }
+])
+const userInput = ref('')
+const loading = ref(false)
+const chatContainer = ref(null)
 
 // Props接收统计数据
 const props = defineProps({
@@ -108,33 +107,6 @@ watch(() => props.shortLinkInfo, (newVal) => {
   internalShortLinkInfo.value = newVal || {}
 }, { immediate: true })
 
-const dialogVisible = ref(false)
-const messages = ref([
-  {
-    role: 'assistant',
-    content: '您好！我是短链接AI智能分析助手，可以帮您分析短链接的访问数据、解答运营问题。请问有什么可以帮您？'
-  }
-])
-const userInput = ref('')
-const loading = ref(false)
-const chatContainer = ref(null)
-
-// 快捷操作
-const quickActions = [
-  {
-    label: '分析访问趋势',
-    prompt: '请分析以下短链接的访问趋势数据：'
-  },
-  {
-    label: '优化建议',
-    prompt: '基于以下数据，请给出短链接运营优化建议：'
-  },
-  {
-    label: '用户画像',
-    prompt: '请根据以下数据，分析访问用户画像：'
-  }
-]
-
 // 发送消息
 const sendMessage = async () => {
   if (!userInput.value.trim() || loading.value) return
@@ -147,8 +119,6 @@ const sendMessage = async () => {
   try {
     // 准备上下文
     let context = ''
-    console.log('AI调试 - statsData:', internalStatsData.value)
-    console.log('AI调试 - shortLinkInfo:', internalShortLinkInfo.value)
     if (internalStatsData.value && Object.keys(internalStatsData.value).length > 0) {
       context = '短链接访问数据：' + JSON.stringify(internalStatsData.value)
     }
@@ -161,7 +131,7 @@ const sendMessage = async () => {
       context: context
     })
 
-    // 解析响应：axios响应的结构是 response.data = {code, data, success}
+    // 解析响应
     const result = response.data
     if (result.code === '0' || result.code === 0) {
       messages.value.push({ role: 'assistant', content: result.data })
@@ -174,9 +144,10 @@ const sendMessage = async () => {
     }
   } catch (error) {
     console.error('AI请求失败:', error)
+    ElMessage.error('AI服务调用失败，请检查网络')
     messages.value.push({
       role: 'assistant',
-      content: '抱歉，AI服务调用失败，请检查网络后重试。'
+      content: '抱歉，AI服务暂时不可用，请稍后再试。'
     })
   } finally {
     loading.value = false
@@ -185,9 +156,9 @@ const sendMessage = async () => {
 }
 
 // 快捷操作
-const handleQuickAction = (action) => {
-  userInput.value = action.prompt + '\n\n' + JSON.stringify(props.statsData, null, 2)
-  sendMessage()
+const sendQuickAction = async (action) => {
+  userInput.value = action
+  await sendMessage()
 }
 
 // 滚动到底部
@@ -197,12 +168,6 @@ const scrollToBottom = () => {
       chatContainer.value.scrollTop = chatContainer.value.scrollHeight
     }
   })
-}
-
-// 格式化消息（简单换行处理）
-const formatMessage = (content) => {
-  if (!content) return ''
-  return content.replace(/\n/g, '<br>')
 }
 
 // 监听对话框打开
@@ -234,11 +199,10 @@ const openDialog = (statsData, shortLinkInfo) => {
 defineExpose({
   openDialog
 })
-</script>
 
-<script>
-export default {
-  name: 'AiAssistant'
+const renderMarkdown = (text) => {
+  if (!text) return ''
+  return marked(text)
 }
 </script>
 
@@ -247,40 +211,140 @@ export default {
   position: relative;
 }
 
+/* Markdown 内容样式 */
+.markdown-body {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4) {
+  margin: 8px 0 6px 0;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.markdown-body :deep(h1) {
+  font-size: 17px;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 16px;
+}
+
+.markdown-body :deep(h3) {
+  font-size: 15px;
+}
+
+.markdown-body :deep(p) {
+  margin: 8px 0;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.markdown-body :deep(li) {
+  margin: 4px 0;
+}
+
+.markdown-body :deep(code) {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #e74c3c;
+}
+
+.markdown-body :deep(pre) {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markdown-body :deep(pre code) {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.markdown-body :deep(table) {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.markdown-body :deep(th) {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.markdown-body :deep(strong) {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.markdown-body :deep(blockquote) {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-left: 4px solid #3498db;
+  background: #f9f9f9;
+  color: #555;
+}
+
 .ai-float-btn {
   position: fixed;
-  right: 30px;
+  right: 20px;
   bottom: 100px;
-  width: 60px;
-  height: 60px;
-  font-size: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #059669, #10b981);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ai-float-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
+  background: linear-gradient(135deg, #047857, #059669);
+  transform: scale(1.05);
 }
 
 .ai-chat-container {
-  height: 400px;
   display: flex;
   flex-direction: column;
+  height: 400px;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  background: #f5f7fa;
+  background: #f5f5f5;
   border-radius: 8px;
   margin-bottom: 10px;
 }
 
 .message {
   display: flex;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   align-items: flex-start;
 }
 
@@ -289,56 +353,45 @@ export default {
 }
 
 .message-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  background: #e0e0e0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 10px;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .message.user .message-avatar {
-  background: #409eff;
+  background: #059669;
   color: white;
-}
-
-.message.assistant .message-avatar {
-  background: #67c23a;
-  color: white;
+  margin-right: 0;
+  margin-left: 8px;
 }
 
 .message-content {
-  max-width: 80%;
-  padding: 10px 14px;
+  max-width: 70%;
+  padding: 8px 12px;
   border-radius: 8px;
-  word-break: break-word;
+  background: white;
+  line-height: 1.5;
 }
 
 .message.user .message-content {
-  background: #409eff;
+  background: #059669;
   color: white;
 }
 
-.message.assistant .message-content {
-  background: white;
-  border: 1px solid #e4e7ed;
-}
-
-.message-text {
-  line-height: 1.6;
-  font-size: 14px;
-}
-
-.loading-text {
-  color: #909399;
-  font-style: italic;
+.message-content.loading {
+  color: #999;
 }
 
 .quick-actions {
-  padding: 10px;
   display: flex;
   gap: 8px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 

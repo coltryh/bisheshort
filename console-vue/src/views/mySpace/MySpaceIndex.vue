@@ -226,18 +226,6 @@
                 >数据</el-link
               >
               <el-link :underline="false" class="el-link" type="primary">编辑</el-link> -->
-                <!-- 表格中的数据按钮 -->
-                <el-tooltip show-after="500" class="box-item" effect="dark" content="查看图表" placement="bottom-end">
-                  <el-icon class="table-edit" @click="chartsVisible(scope.row)">
-                    <Histogram />
-                  </el-icon>
-                </el-tooltip>
-                <!-- AI分析按钮 -->
-                <el-tooltip show-after="500" class="box-item" effect="dark" content="AI分析" placement="bottom-end">
-                  <el-icon class="table-edit" @click="openAiAnalysis(scope.row)">
-                    <MagicStick />
-                  </el-icon>
-                </el-tooltip>
                 <!-- 表格中的编辑按钮 -->
                 <el-tooltip show-after="500" class="box-item" effect="dark" content="编辑" placement="bottom-end">
                   <el-icon @click="editLink(scope.row)" class="table-edit">
@@ -400,32 +388,6 @@ const isGroup = ref(false)
 const tableFullShortUrl = ref()
 const tableGid = ref()
 
-// AI分析 - 打开AI对话框并传递当前行数据
-const openAiAnalysis = async (rowInfo) => {
-  // 先加载该链接的统计数据，等待完成
-  await chartsVisible(rowInfo)
-  // 数据加载完成后打开AI对话框
-  aiAssistantRef.value?.openDialog(chartsInfo.value, {
-    fullShortUrl: rowInfo.fullShortUrl,
-    gid: rowInfo.gid,
-    enableStatus: rowInfo.enableStatus
-  })
-}
-
-// 点击查看数据图表
-const chartsVisible = async (rowInfo, dateList) => {
-  chartsInfoTitle.value = rowInfo?.describe
-  const { fullShortUrl, gid, group, originUrl, favicon, enableStatus } = rowInfo
-  originUrl1.value = originUrl
-  favicon1.value = favicon
-  isGroup.value = group
-  tableFullShortUrl.value = fullShortUrl
-  tableGid.value = gid
-  visitLink.fullShortUrl = fullShortUrl
-  visitLink.gid = gid
-  visitLink.enableStatus = enableStatus
-  chartsInfoRef?.value.isVisible()
-}
 // 图表修改时间后重新请求数
 const changeTimeData = async (rowInfo, dateList) => {
   // 统计功能暂时跳过
@@ -663,8 +625,8 @@ const coverEditLink = () => {
 }
 // 删除短链接
 const deleteLink = (data) => {
-  const { id } = data
-  allinoneAPI.deleteLink(id)
+  const { gid, fullShortUrl } = data
+  allinoneAPI.deleteLink(gid, fullShortUrl)
     .then((res) => {
       if (res?.data?.code === '0') {
         ElMessage.success('删除成功')

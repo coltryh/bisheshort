@@ -67,7 +67,7 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
-    public String chat(String username, String message) {
+    public String chat(String username, String message, String context) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(baseUrl + "/text/chatcompletion_v2");
 
@@ -90,7 +90,7 @@ public class AiServiceImpl implements AiService {
             requestBody.put("bot_setting", new Object[]{botSetting});
             Map<String, String> userMessage = new HashMap<>();
             userMessage.put("role", "user");
-            userMessage.put("content", message);
+            userMessage.put("content", context + "\n\n用户问题: " + message);
             requestBody.put("messages", new Object[]{userMessage});
 
             String jsonBody = JSON.toJSONString(requestBody);

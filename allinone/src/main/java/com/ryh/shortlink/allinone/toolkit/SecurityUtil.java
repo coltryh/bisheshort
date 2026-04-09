@@ -94,7 +94,7 @@ public class SecurityUtil {
      * URL安全 Base64 编码
      */
     public static String base64UrlEncode(byte[] bytes) {
-        return cn.hutool.core.codec.Base64.encode(bytes, true);
+        return java.util.Base64.getUrlEncoder().encodeToString(bytes);
     }
 
     /**

@@ -22,7 +22,7 @@ import java.util.Map;
  * 短链接控制器
  */
 @RestController
-@RequestMapping("/api/link")
+@RequestMapping("/api/short-link/admin/v1")
 @RequiredArgsConstructor
 public class ShortLinkController {
 
@@ -85,7 +85,7 @@ public class ShortLinkController {
     /**
      * 创建短链接
      */
-    @PostMapping("/save")
+    @PostMapping(value = {"/save", "/create"})
     public Result<ShortLinkCreateRespDTO> create(@RequestBody ShortLinkCreateReqDTO requestParam, HttpSession session) {
         String username = SessionUtils.getUsername(session);
         if (username == null) {

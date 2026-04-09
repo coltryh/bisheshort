@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
         // 缓存登录信息
         Map<String, String> sessionMap = new ConcurrentHashMap<>();
-        sessionMap.put(token, BeanUtil.toJsonStr(userDO));
+        sessionMap.put(token, cn.hutool.json.JSONUtil.toJsonStr(userDO));
         USER_LOGIN_CACHE.put(username, sessionMap);
 
         return UserLoginRespDTO.builder()

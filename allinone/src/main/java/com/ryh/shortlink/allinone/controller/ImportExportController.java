@@ -15,7 +15,7 @@ import java.util.Map;
  * 导入导出控制器
  */
 @RestController
-@RequestMapping("/api/link")
+@RequestMapping("/api/short-link/admin/v1")
 @RequiredArgsConstructor
 public class ImportExportController {
 

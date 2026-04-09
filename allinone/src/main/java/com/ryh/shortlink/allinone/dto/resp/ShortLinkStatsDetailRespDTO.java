@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 短链接详细统计响应DTO
@@ -17,48 +16,41 @@ import java.util.Map;
 @AllArgsConstructor
 public class ShortLinkStatsDetailRespDTO {
 
-    /**
-     * 基础统计
-     */
-    private ShortLinkStatsRespDTO baseStats;
+    // 基础统计（扁平化到顶层）
+    private Integer totalPv;
+    private Integer totalUv;
+    private Integer totalUip;
 
-    /**
-     * 每日统计
-     */
-    private List<ShortLinkStatsAccessDailyRespDTO> dailyStats;
+    // 每日访问统计
+    private List<ShortLinkStatsAccessDailyRespDTO> daily;
 
-    /**
-     * 设备统计
-     */
-    private List<Map<String, Object>> deviceStats;
+    // 24小时分布
+    private List<Integer> hourStats;
 
-    /**
-     * 浏览器统计
-     */
-    private List<Map<String, Object>> browserStats;
+    // 一周分布
+    private List<Integer> weekdayStats;
 
-    /**
-     * 操作系统统计
-     */
-    private List<Map<String, Object>> osStats;
+    // 高频访问IP
+    private List<StatsIpRespDTO> topIpStats;
 
-    /**
-     * 地区统计
-     */
-    private List<Map<String, Object>> localeStats;
+    // 设备统计
+    private List<StatsDeviceRespDTO> deviceStats;
 
-    /**
-     * 网络类型统计
-     */
-    private List<Map<String, Object>> networkStats;
+    // 网络类型统计
+    private List<StatsDeviceRespDTO> networkStats;
 
-    /**
-     * 小时统计
-     */
-    private List<Map<String, Object>> hourlyStats;
+    // 操作系统统计
+    private List<StatsOsRespDTO> osStats;
 
-    /**
-     * 访问趋势（最近30天）
-     */
-    private List<ShortLinkStatsAccessDailyRespDTO> trendStats;
+    // 浏览器统计
+    private List<StatsBrowserRespDTO> browserStats;
+
+    // 中国地图地区统计
+    private List<StatsLocaleRespDTO> localeCnStats;
+
+    // 世界地图地区统计
+    private List<StatsLocaleRespDTO> localeWorldStats;
+
+    // 访客类型统计
+    private List<StatsUvTypeRespDTO> uvTypeStats;
 }

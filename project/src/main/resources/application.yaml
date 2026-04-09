@@ -20,6 +20,8 @@ spring:
     nacos:
       discovery:
         server-addr: 106.12.146.146:8848
+        # 指定注册到 Nacos 的 IP 为本机无线网络 IP
+        ip: 192.168.0.106
 
 short-link:
   domain:
@@ -42,17 +44,9 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
 
-# MiniMax AI配置（用于RAG和AI对话功能）
+# MiniMax AI配置（用于AI对话功能）
 minimax:
   api-key: sk-cp-ci7wMCIWzMmkymTp0VdexCloEVWjevQZ-OqJzHzpcMPfYMPbRWHUzP50_QbSREsD7UTszpw4O1fEMU8T2-qaORrvGdnr7f-La3dJ7Qd7uw85sxgk349JAl0
   group-id: 2022478885660140272
   base-url: https://api.minimaxi.com/v1
   chat-model: MiniMax-M2.7
-  embedding-model: emb-01
-
-# Embedding服务配置
-embedding:
-  base-url: http://localhost:5000
-  connect-timeout: 5000
-  read-timeout: 30000
-  search-top-k: 5

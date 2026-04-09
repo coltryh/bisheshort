@@ -1,6 +1,9 @@
 package com.ryh.shortlink.allinone.dto.req;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -8,6 +11,9 @@ import java.util.Date;
  * 短链接创建请求DTO
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ShortLinkCreateReqDTO {
 
     /**

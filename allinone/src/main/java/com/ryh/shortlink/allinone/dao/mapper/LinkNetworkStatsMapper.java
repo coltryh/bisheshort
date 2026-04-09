@@ -26,3 +26,7 @@ public interface LinkNetworkStatsMapper extends BaseMapper<LinkNetworkStatsDO> {
 
     /**
      * 根据短链接查询所有网络类型统计
+     */
+    @Select("SELECT * FROM t_link_network_stats WHERE full_short_url = #{fullShortUrl}")
+    List<LinkNetworkStatsDO> selectByFullShortUrl(@Param("fullShortUrl") String fullShortUrl);
+}

@@ -1,3 +1,32 @@
+import axios from 'axios'
+import {getToken, getUsername} from '@/core/auth.js'
+import {isNotEmpty} from '@/utils/plugins.js'
+import router from "@/router";
+
+// allinone API instance with baseURL: '/api'
+const allinoneHttp = axios.create({
+    baseURL: '/api',
+    timeout: 15000
+})
+allinoneHttp.interceptors.request.use(
+    (config) => {
+        config.headers.Token = isNotEmpty(getToken()) ? getToken() : ''
+        config.headers.Username = isNotEmpty(getUsername()) ? getUsername() : ''
+        return config
+    },
+    (error) => Promise.reject(error)
+)
+allinoneHttp.interceptors.response.use(
+    (res) => (res.status === 200 || res.status === 0) ? Promise.resolve(res) : Promise.reject(res),
+    (err) => {
+        if (err.response?.status === 401) {
+            localStorage.removeItem('token')
+            router.push('/login')
+        }
+        return Promise.reject(err)
+    }
+)
+
 import http from '../axios'
 export default {
   queryPage(data) {
@@ -71,10 +100,10 @@ export default {
   },
   // 查询单链的图表数据
   queryLinkStats(data) {
-    return http({
+    return allinoneHttp({
       method: 'get',
       params: data,
-      url: 'stats'
+      url: '/stats'
     })
   },
   // 查询分组的访问记录

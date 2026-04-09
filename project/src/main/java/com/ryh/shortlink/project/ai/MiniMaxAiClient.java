@@ -45,7 +45,6 @@ public class MiniMaxAiClient {
     private final MiniMaxConfig config;
 
     private static final String CHAT_API_PATH = "/text/chatcompletion_v2";
-    private static final String EMBEDDING_API_PATH = "/text/embeddings";
 
     /**
      * 对话接口
@@ -163,80 +162,12 @@ public class MiniMaxAiClient {
     }
 
     /**
-     * 获取 Embedding 向量
-     *
-     * @param text 文本
-     * @return 向量列表
-     */
-    @SuppressWarnings("unchecked")
-    public List<Double> getEmbedding(String text) {
-        if (StrUtil.isBlank(config.getApiKey())) {
-            // 返回 mock 数据
-            return generateMockEmbedding();
-        }
-
-        try {
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", config.getEmbeddingModel());
-            requestBody.put("texts", new String[]{text});
-
-            HttpResponse response = HttpRequest.post(config.getBaseUrl() + EMBEDDING_API_PATH)
-                    .header("Authorization", "Bearer " + config.getApiKey())
-                    .header("Content-Type", "application/json")
-                    .body(JSON.toJSONString(requestBody))
-                    .timeout(30000)
-                    .execute();
-
-            if (response.isOk()) {
-                JSONObject result = JSON.parseObject(response.body());
-                JSONArray data = result.getJSONArray("data");
-                if (data != null && !data.isEmpty()) {
-                    return data.getJSONObject(0).getList("embedding", Double.class);
-                }
-            }
-            log.error("MiniMax Embedding调用失败: {}", response.body());
-        } catch (Exception e) {
-            log.error("MiniMax Embedding调用异常", e);
-        }
-
-        return generateMockEmbedding();
-    }
-
-    /**
-     * 生成 Mock 向量（用于开发测试）
-     */
-    private List<Double> generateMockEmbedding() {
-        List<Double> mock = new ArrayList<>();
-        for (int i = 0; i < 768; i++) {
-            mock.add(Math.random() * 2 - 1);
-        }
-        return mock;
-    }
-
-    /**
      * 默认系统提示词
      */
     private String getDefaultSystemPrompt() {
-        return "你是一个短链接管理系统的AI助手，擅长回答用户关于平台使用的问题。" +
-                "你的知识库包含了平台的使用指南、常见问题解答等功能文档。" +
-                "请用简洁易懂的语言回答用户的问题。";
-    }
-
-    /**
-     * 构建 RAG 问答的系统提示词
-     */
-    public String buildRagSystemPrompt(List<String> retrievedDocs) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是一个短链接管理系统的AI助手，擅长回答用户关于平台使用的问题。\n\n");
-        prompt.append("参考知识库内容回答用户问题：\n");
-
-        for (int i = 0; i < retrievedDocs.size(); i++) {
-            prompt.append(String.format("[文档%d] %s\n\n", i + 1, retrievedDocs.get(i)));
-        }
-
-        prompt.append("请根据以上知识库内容，用专业但易懂的方式回答用户的问题。" +
-                "如果知识库中没有相关信息，请说明并建议用户查看官方文档或联系客服。");
-        return prompt.toString();
+        return "你是一个短链接管理系统的AI助手，擅长分析短链接的访问统计数据，" +
+                "回答用户关于短链接效果分析的问题。请用简洁易懂的语言解释数据含义，" +
+                "并给出合理的运营建议。";
     }
 
     /**
