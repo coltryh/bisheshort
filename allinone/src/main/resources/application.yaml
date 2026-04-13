@@ -34,7 +34,7 @@ mybatis-plus:
 
 short-link:
   domain:
-    default: localhost:8001
+    default: 192.168.0.101:8001
   group:
     max-num: 100
   stats:

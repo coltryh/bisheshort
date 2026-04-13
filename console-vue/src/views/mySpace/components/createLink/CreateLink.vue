@@ -67,13 +67,35 @@
         </div>
       </el-form-item>
     </el-form>
+
+    <!-- 二维码展示弹窗 -->
+    <el-dialog v-model="showQrDialog" title="创建成功" width="350px" :close-on-click-modal="false">
+      <div class="qr-result-box">
+        <div class="short-url-box">
+          <span class="label">短链接：</span>
+          <el-link type="primary" :href="'http://' + createdShortUrl" target="_blank" @click.stop>
+            {{ createdShortUrl }}
+          </el-link>
+          <el-icon class="copy-icon" @click="copyUrl(createdShortUrl)"><CopyDocument /></el-icon>
+        </div>
+        <div class="qr-canvas-box">
+          <canvas ref="qrCanvas"></canvas>
+        </div>
+        <div class="qr-tips">扫码即可访问</div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="downloadQr">下载二维码</el-button>
+        <el-button @click="showQrDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { reactive, ref, watch, onBeforeUnmount, getCurrentInstance, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useStore } from 'vuex'
+import QRCode from 'qrcode'
 
 const { proxy } = getCurrentInstance()
 const API = proxy.$API
@@ -257,6 +279,55 @@ const emits = defineEmits(['onSubmit', 'cancel'])
 // 点击确定按钮后的校验
 const ruleFormRef = ref()
 const submitDisable = ref(false)
+
+// 二维码相关变量
+const showQrDialog = ref(false)
+const createdShortUrl = ref('')
+const qrCanvas = ref()
+
+// 生成二维码
+const generateQrCode = async () => {
+  if (qrCanvas.value && createdShortUrl.value) {
+    await nextTick()
+    QRCode.toCanvas(qrCanvas.value, 'http://' + createdShortUrl.value, {
+      width: 180,
+      height: 180,
+      margin: 2
+    })
+  }
+}
+
+// 监听弹窗打开，生成二维码
+watch(showQrDialog, (newVal) => {
+  if (newVal) {
+    generateQrCode()
+  }
+})
+
+// 下载二维码
+const downloadQr = () => {
+  if (qrCanvas.value) {
+    const a = document.createElement('a')
+    a.href = qrCanvas.value.toDataURL('image/png')
+    a.download = createdShortUrl.value || '二维码'
+    a.click()
+    ElMessage.success('正在下载二维码')
+  }
+}
+
+// 复制链接
+const copyUrl = (url) => {
+  let eInput = document.createElement('input')
+  eInput.value = 'http://' + url
+  document.body.appendChild(eInput)
+  eInput.select()
+  let copyText = document.execCommand('Copy')
+  eInput.style.display = 'none'
+  if (copyText) {
+    ElMessage.success('链接复制成功!')
+  }
+}
+
 const onSubmit = async (formEl) => {
   submitDisable.value = true
   if (!formEl) {
@@ -276,8 +347,11 @@ const onSubmit = async (formEl) => {
           ElMessage.error(res.data.message)
         }
       } else {
-        ElMessage.success('创建成功！')
-        emits('onSubmit', false)
+        // 获取创建的短链接URL
+        if (res.data?.data) {
+          createdShortUrl.value = res.data.data.fullShortUrl || res.data.data
+        }
+        showQrDialog.value = true
         submitDisable.value = false
       }
     } else {
@@ -288,6 +362,7 @@ const onSubmit = async (formEl) => {
 const cancel = () => {
   emits('cancel', false)
   initFormData()
+  showQrDialog.value = false
 }
 onBeforeUnmount(() => {
   initFormData()
@@ -303,5 +378,47 @@ defineExpose({
   color: rgb(231, 166, 67);
   font-size: 12px;
   width: 90%;
+}
+
+.qr-result-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.short-url-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 8px;
+}
+
+.short-url-box .label {
+  font-weight: 500;
+  color: #606266;
+}
+
+.copy-icon {
+  cursor: pointer;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.copy-icon:hover {
+  color: #66b1ff;
+}
+
+.qr-canvas-box {
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qr-tips {
+  margin-top: 15px;
+  color: #909399;
+  font-size: 14px;
 }
 </style>

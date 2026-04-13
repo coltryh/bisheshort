@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DetailedStatsServiceImpl implements DetailedStatsService {
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     private final LinkAccessStatsMapper linkAccessStatsMapper;
     private final LinkDeviceStatsMapper linkDeviceStatsMapper;
@@ -64,12 +67,6 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
         // Get browser stats
         List<StatsBrowserRespDTO> browserStats = getBrowserStats(fullShortUrl, days);
 
-        // Get China locale stats
-        List<StatsLocaleRespDTO> localeCnStats = getLocaleCnStats(fullShortUrl, days);
-
-        // Get world locale stats
-        List<StatsLocaleRespDTO> localeWorldStats = getLocaleWorldStats(fullShortUrl, days);
-
         // Get UV type stats (new user vs old user)
         List<StatsUvTypeRespDTO> uvTypeStats = getUvTypeStats(fullShortUrl, days);
 
@@ -85,8 +82,6 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
                 .networkStats(networkStats)
                 .osStats(osStats)
                 .browserStats(browserStats)
-                .localeCnStats(localeCnStats)
-                .localeWorldStats(localeWorldStats)
                 .uvTypeStats(uvTypeStats)
                 .build();
     }
@@ -185,17 +180,6 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
     }
 
     @Override
-    public List<Map<String, Object>> getLocaleDistribution(String fullShortUrl, int days) {
-        List<StatsLocaleRespDTO> localeCnStats = getLocaleCnStats(fullShortUrl, days);
-        return localeCnStats.stream().map(stat -> {
-            Map<String, Object> item = new HashMap<>();
-            item.put("name", stat.getLocale());
-            item.put("value", stat.getCnt());
-            return item;
-        }).collect(Collectors.toList());
-    }
-
-    @Override
     public List<Map<String, Object>> getNetworkDistribution(String fullShortUrl, int days) {
         List<StatsDeviceRespDTO> networkStats = getNetworkStats(fullShortUrl, days);
         return networkStats.stream().map(stat -> {
@@ -208,30 +192,77 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
 
     /**
      * Get hour distribution (24 values for hours 0-23)
-     * Note: Requires access_logs table with access_time. If unavailable, return evenly distributed placeholder.
      */
     private List<Integer> getHourStats(String fullShortUrl, int days) {
-        // Initialize with placeholder data - in production, this would come from access logs
-        // returning hourly distribution would require detailed access log analysis
-        return Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        Date startDate = getStartDate(days);
+        Date endDate = new Date();
+
+        List<LinkAccessStatsDO> hourStats = linkAccessStatsMapper.selectHourStatsByFullShortUrl(fullShortUrl, startDate, endDate);
+
+        // Initialize with zeros for all 24 hours
+        List<Integer> result = new ArrayList<>(Collections.nCopies(24, 0));
+
+        // Fill in the actual data
+        for (LinkAccessStatsDO stat : hourStats) {
+            if (stat.getHour() != null && stat.getHour() >= 0 && stat.getHour() <= 23) {
+                result.set(stat.getHour(), stat.getPv() != null ? stat.getPv() : 0);
+            }
+        }
+
+        return result;
     }
 
     /**
-     * Get weekday distribution (7 values for Sunday to Saturday)
-     * Note: Requires access_logs table with access_time. If unavailable, return placeholder.
+     * Get weekday distribution (7 values for Monday to Sunday)
+     * Note: Database stores weekday as 1-7 (1=Monday, 7=Sunday), frontend expects Mon-Sun order
      */
     private List<Integer> getWeekdayStats(String fullShortUrl, int days) {
-        // Initialize with placeholder data
-        return Arrays.asList(0, 0, 0, 0, 0, 0, 0);
+        Date startDate = getStartDate(days);
+        Date endDate = new Date();
+
+        List<LinkAccessStatsDO> weekdayStats = linkAccessStatsMapper.selectWeekdayStatsByFullShortUrl(fullShortUrl, startDate, endDate);
+
+        // Initialize with zeros for all 7 days (Mon=0, Sun=6 for frontend)
+        List<Integer> result = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0));
+
+        // Fill in the actual data
+        // Database: 1=Mon, 2=Tue, ..., 7=Sun
+        // Frontend: 0=Mon, 1=Tue, ..., 5=Sat, 6=Sun
+        for (LinkAccessStatsDO stat : weekdayStats) {
+            if (stat.getWeekday() != null && stat.getWeekday() >= 1 && stat.getWeekday() <= 7) {
+                int index = stat.getWeekday() - 1; // Convert 1-7 to 0-6
+                result.set(index, stat.getPv() != null ? stat.getPv() : 0);
+            }
+        }
+
+        return result;
     }
 
     /**
      * Get top IP statistics
-     * Note: Requires access_logs table. If unavailable, return empty list.
      */
     private List<StatsIpRespDTO> getTopIpStats(String fullShortUrl, int days) {
-        // Return empty list - IP stats require access_logs table
-        return new ArrayList<>();
+        Date startDate = getStartDate(days);
+        Date endDate = new Date();
+
+        // 从 access_logs 查询 IP 统计
+        List<LinkAccessLogsDO> logs = linkAccessLogsMapper.selectByFullShortUrlAndTimeRange(fullShortUrl, startDate, endDate);
+
+        // 按 IP 分组统计
+        Map<String, Integer> ipMap = new HashMap<>();
+        for (LinkAccessLogsDO log : logs) {
+            String ip = log.getIp() != null ? log.getIp() : "Unknown";
+            ipMap.merge(ip, 1, Integer::sum);
+        }
+
+        return ipMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(10) // Top 10 IP
+                .map(e -> StatsIpRespDTO.builder()
+                        .ip(e.getKey())
+                        .cnt(e.getValue())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -355,76 +386,6 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
     }
 
     /**
-     * Get China locale statistics (provinces)
-     */
-    private List<StatsLocaleRespDTO> getLocaleCnStats(String fullShortUrl, int days) {
-        Date startDate = getStartDate(days);
-        Date endDate = new Date();
-
-        LambdaQueryWrapper<LinkLocaleStatsDO> queryWrapper = Wrappers.lambdaQuery(LinkLocaleStatsDO.class)
-                .eq(LinkLocaleStatsDO::getFullShortUrl, fullShortUrl)
-                .ge(LinkLocaleStatsDO::getDate, startDate)
-                .le(LinkLocaleStatsDO::getDate, endDate)
-                .eq(LinkLocaleStatsDO::getCountry, "China"); // Filter for China
-
-        List<LinkLocaleStatsDO> localeStats = linkLocaleStatsMapper.selectList(queryWrapper);
-
-        // Aggregate by province
-        Map<String, Integer> localeMap = new HashMap<>();
-        int totalCnt = 0;
-        for (LinkLocaleStatsDO stat : localeStats) {
-            String province = stat.getProvince() != null ? stat.getProvince() : "Unknown";
-            int cnt = stat.getCnt() != null ? stat.getCnt() : 0;
-            localeMap.merge(province, cnt, Integer::sum);
-            totalCnt += cnt;
-        }
-
-        // Convert to DTOs with ratio
-        final int finalTotalCnt = totalCnt;
-        return localeMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(e -> StatsLocaleRespDTO.builder()
-                        .locale(e.getKey())
-                        .cnt(e.getValue())
-                        .ratio(finalTotalCnt > 0 ? (double) e.getValue() / finalTotalCnt : 0.0)
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get world locale statistics (countries)
-     */
-    private List<StatsLocaleRespDTO> getLocaleWorldStats(String fullShortUrl, int days) {
-        Date startDate = getStartDate(days);
-        Date endDate = new Date();
-
-        LambdaQueryWrapper<LinkLocaleStatsDO> queryWrapper = Wrappers.lambdaQuery(LinkLocaleStatsDO.class)
-                .eq(LinkLocaleStatsDO::getFullShortUrl, fullShortUrl)
-                .ge(LinkLocaleStatsDO::getDate, startDate)
-                .le(LinkLocaleStatsDO::getDate, endDate)
-                .ne(LinkLocaleStatsDO::getCountry, "China"); // Filter for non-China
-
-        List<LinkLocaleStatsDO> localeStats = linkLocaleStatsMapper.selectList(queryWrapper);
-
-        // Aggregate by country
-        Map<String, Integer> localeMap = new HashMap<>();
-        for (LinkLocaleStatsDO stat : localeStats) {
-            String country = stat.getCountry() != null ? stat.getCountry() : "Unknown";
-            int cnt = stat.getCnt() != null ? stat.getCnt() : 0;
-            localeMap.merge(country, cnt, Integer::sum);
-        }
-
-        return localeMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(e -> StatsLocaleRespDTO.builder()
-                        .locale(e.getKey())
-                        .cnt(e.getValue())
-                        .ratio(0.0) // World stats don't need ratio
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Get UV type statistics (new user vs old user)
      * Note: Requires access_logs table to track first visit time. If unavailable, use placeholder.
      */
@@ -463,7 +424,7 @@ public class DetailedStatsServiceImpl implements DetailedStatsService {
         List<LinkAccessStatsDO> statsList = linkAccessStatsMapper.selectList(queryWrapper);
 
         return statsList.stream().map(stat -> ShortLinkStatsAccessDailyRespDTO.builder()
-                .date(stat.getDate())
+                .date(DATE_FORMAT.format(stat.getDate()))
                 .pv(stat.getPv())
                 .uv(stat.getUv())
                 .uip(stat.getUip())

@@ -1,12 +1,12 @@
 <template>
   <div class="main-box">
-    <span v-if="!dataLists"> 所选日期内没有访问数据 </span>
+    <span v-if="!dataLists || dataLists.length === 0"> 所选日期内没有访问数据 </span>
     <div v-else>
-      <div class="flex-box" v-for="(item, index) in dataLists" :key="index">
+      <div class="flex-box" v-for="(item, index) in computedData" :key="index">
         <div class="flex-item">
           <div>
             <img :src="getUrl(item?.browser, item?.os)" width="25" alt="" />
-            <span>{{ item?.browser || item?.os }} {{ (item?.ratio * 100).toFixed(2) }}%</span>
+            <span>{{ item?.browser || item?.os }} {{ item?.percentage }}%</span>
           </div>
           <div>
             <span>{{ item?.cnt }} 次</span>
@@ -18,7 +18,7 @@
             :text-inside="true"
             :show-text="false"
             :stroke-width="12"
-            :percentage="(item?.ratio * 100).toFixed(2)"
+            :percentage="item?.percentage"
           />
         </div>
       </div>
@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import edge from '@/assets/png/edge.png'
 import Andriod from '@/assets/png/Andriod.png'
 import Chorme from '@/assets/png/Chorme.png'
@@ -41,26 +42,27 @@ import linux from '@/assets/png/linux.png'
 import opera from '@/assets/png/opera.png'
 import IE from '@/assets/png/IE.png'
 
-defineProps({
+const props = defineProps({
   dataLists: {
     type: Array
-    // eslint-disable-next-line vue/require-valid-default-prop
-    // default: [
-    //   {
-    //     name: 'windows',
-    //     img: null,
-    //     times: 2,
-    //     percentage: 50
-    //   },
-    //   {
-    //     name: 'linux',
-    //     img: null,
-    //     times: 2,
-    //     percentage: 50
-    //   },
-    // ]
   }
 })
+
+// 计算总cnt并计算百分比
+const computedData = computed(() => {
+  if (!props.dataLists || props.dataLists.length === 0) {
+    return []
+  }
+  const total = props.dataLists.reduce((sum, item) => sum + (item?.cnt || 0), 0)
+  if (total === 0) {
+    return props.dataLists.map(item => ({ ...item, percentage: 0 }))
+  }
+  return props.dataLists.map(item => ({
+    ...item,
+    percentage: Math.round((item?.cnt || 0) * 100 / total)
+  }))
+})
+
 const getUrl = (img1, img2) => {
   if (img1) {
     img1 = img1.toLowerCase()

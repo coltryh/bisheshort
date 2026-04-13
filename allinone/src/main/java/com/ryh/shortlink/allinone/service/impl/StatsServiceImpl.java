@@ -30,6 +30,7 @@ public class StatsServiceImpl implements StatsService {
     private final LinkOsStatsMapper linkOsStatsMapper;
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
     private final LinkNetworkStatsMapper linkNetworkStatsMapper;
+    private final LinkStatsTodayMapper linkStatsTodayMapper;
 
     @Override
     public ShortLinkStatsRespDTO getOverview(String username) {
@@ -112,9 +113,27 @@ public class StatsServiceImpl implements StatsService {
     @Transactional
     public void recordAccess(String fullShortUrl, String uv, String ip, String device, String os, String browser, String network, String country, String province, String city) {
         try {
+            // 标准化 fullShortUrl，去掉 http:// 前缀
+            if (fullShortUrl.startsWith("http://")) {
+                fullShortUrl = fullShortUrl.substring(7);
+            } else if (fullShortUrl.startsWith("https://")) {
+                fullShortUrl = fullShortUrl.substring(8);
+            }
+
             Date now = new Date();
             Calendar cal = Calendar.getInstance();
             cal.setTime(now);
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            int weekday = cal.get(Calendar.DAY_OF_WEEK);
+            // 转换星期：Calendar.DAY_OF_Sunday=1, 我们需要1=周一,7=周日
+            // Calendar: 1=周日, 2=周一, ..., 7=周六
+            // 我们需要: 1=周一, 2=周二, ..., 7=周日
+            if (weekday == 1) {
+                weekday = 7; // 周日
+            } else {
+                weekday = weekday - 1; // 周一=1, 周二=2, ...
+            }
+
             cal.set(Calendar.HOUR_OF_DAY, 0);
             cal.set(Calendar.MINUTE, 0);
             cal.set(Calendar.SECOND, 0);
@@ -135,21 +154,24 @@ public class StatsServiceImpl implements StatsService {
             }
 
             // 2. 更新每日统计 t_link_access_stats
-            updateDailyStats(fullShortUrl, today, uv, ip);
+            updateDailyStats(fullShortUrl, today, hour, weekday, uv, ip);
 
-            // 3. 更新设备统计 t_link_device_stats
+            // 3. 更新今日统计 t_link_stats_today
+            updateTodayStats(fullShortUrl, today);
+
+            // 4. 更新设备统计 t_link_device_stats
             updateDeviceStats(fullShortUrl, device, today);
 
-            // 4. 更新浏览器统计 t_link_browser_stats
+            // 5. 更新浏览器统计 t_link_browser_stats
             updateBrowserStats(fullShortUrl, browser, today);
 
-            // 5. 更新操作系统统计 t_link_os_stats
+            // 6. 更新操作系统统计 t_link_os_stats
             updateOsStats(fullShortUrl, os, today);
 
-            // 6. 更新地区统计 t_link_locale_stats
+            // 7. 更新地区统计 t_link_locale_stats
             updateLocaleStats(fullShortUrl, country, province, city, today);
 
-            // 7. 更新网络统计 t_link_network_stats
+            // 8. 更新网络统计 t_link_network_stats
             updateNetworkStats(fullShortUrl, network, today);
 
             log.debug("记录访问统计成功: {}", fullShortUrl);
@@ -158,7 +180,7 @@ public class StatsServiceImpl implements StatsService {
         }
     }
 
-    private void updateDailyStats(String fullShortUrl, Date date, String uv, String ip) {
+    private void updateDailyStats(String fullShortUrl, Date date, int hour, int weekday, String uv, String ip) {
         LambdaQueryWrapper<LinkAccessStatsDO> queryWrapper = Wrappers.lambdaQuery(LinkAccessStatsDO.class)
                 .eq(LinkAccessStatsDO::getFullShortUrl, fullShortUrl)
                 .eq(LinkAccessStatsDO::getDate, date);
@@ -171,6 +193,8 @@ public class StatsServiceImpl implements StatsService {
                     .pv(1)
                     .uv(1)
                     .uip(1)
+                    .hour(hour)
+                    .weekday(weekday)
                     .createTime(new Date())
                     .updateTime(new Date())
                     .build();
@@ -179,8 +203,36 @@ public class StatsServiceImpl implements StatsService {
             stats.setPv(stats.getPv() != null ? stats.getPv() + 1 : 1);
             stats.setUv(stats.getUv() != null ? stats.getUv() + 1 : 1);
             stats.setUip(stats.getUip() != null ? stats.getUip() + 1 : 1);
+            stats.setHour(hour);
+            stats.setWeekday(weekday);
             stats.setUpdateTime(new Date());
             linkAccessStatsMapper.updateById(stats);
+        }
+    }
+
+    private void updateTodayStats(String fullShortUrl, Date date) {
+        LambdaQueryWrapper<LinkStatsTodayDO> queryWrapper = Wrappers.lambdaQuery(LinkStatsTodayDO.class)
+                .eq(LinkStatsTodayDO::getFullShortUrl, fullShortUrl)
+                .eq(LinkStatsTodayDO::getDate, date);
+        LinkStatsTodayDO stats = linkStatsTodayMapper.selectOne(queryWrapper);
+
+        if (stats == null) {
+            stats = LinkStatsTodayDO.builder()
+                    .fullShortUrl(fullShortUrl)
+                    .date(date)
+                    .todayPv(1)
+                    .todayUv(1)
+                    .todayUip(1)
+                    .createTime(new Date())
+                    .updateTime(new Date())
+                    .build();
+            linkStatsTodayMapper.insert(stats);
+        } else {
+            stats.setTodayPv(stats.getTodayPv() != null ? stats.getTodayPv() + 1 : 1);
+            stats.setTodayUv(stats.getTodayUv() != null ? stats.getTodayUv() + 1 : 1);
+            stats.setTodayUip(stats.getTodayUip() != null ? stats.getTodayUip() + 1 : 1);
+            stats.setUpdateTime(new Date());
+            linkStatsTodayMapper.updateById(stats);
         }
     }
 

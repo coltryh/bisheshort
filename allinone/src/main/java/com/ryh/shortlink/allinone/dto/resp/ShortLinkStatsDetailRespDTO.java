@@ -45,12 +45,6 @@ public class ShortLinkStatsDetailRespDTO {
     // 浏览器统计
     private List<StatsBrowserRespDTO> browserStats;
 
-    // 中国地图地区统计
-    private List<StatsLocaleRespDTO> localeCnStats;
-
-    // 世界地图地区统计
-    private List<StatsLocaleRespDTO> localeWorldStats;
-
     // 访客类型统计
     private List<StatsUvTypeRespDTO> uvTypeStats;
 }

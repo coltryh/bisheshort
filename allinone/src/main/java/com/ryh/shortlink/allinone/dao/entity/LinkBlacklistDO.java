@@ -3,53 +3,38 @@ package com.ryh.shortlink.allinone.dao.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-/**
- * 今日统计实体
- */
 @Data
-@TableName("t_link_stats_today")
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LinkStatsTodayDO {
+@TableName("t_link_blacklist")
+public class LinkBlacklistDO {
 
-    /**
-     * ID
-     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 完整短链接
+     * 被封禁的域名或URL
      */
-    private String fullShortUrl;
+    private String domain;
 
     /**
-     * 今日PV
+     * 封禁类型: domain=域名, url=完整URL, keyword=关键词
      */
-    private Integer todayPv;
+    private String type;
 
     /**
-     * 今日UV
+     * 封禁原因
      */
-    private Integer todayUv;
+    private String reason;
 
     /**
-     * 今日UIP
+     * 封禁状态: 0=有效, 1=已解封
      */
-    private Integer todayUip;
-
-    /**
-     * 日期
-     */
-    private Date date;
+    private Integer status;
 
     /**
      * 创建时间

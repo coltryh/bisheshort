@@ -111,9 +111,6 @@
         <el-descriptions-item label="浏览器" :span="3">
           {{ browserStats }}
         </el-descriptions-item>
-        <el-descriptions-item label="TOP 访问地区" :span="3">
-          {{ topLocations }}
-        </el-descriptions-item>
       </el-descriptions>
     </el-card>
 
@@ -215,11 +212,6 @@ const osStats = computed(() => {
 const browserStats = computed(() => {
   if (!detailStats.value?.browserStats?.length) return '无数据'
   return detailStats.value.browserStats.map(item => `${item.browser}: ${item.cnt}`).join(', ')
-})
-
-const topLocations = computed(() => {
-  if (!detailStats.value?.localeCnStats?.length) return '无数据'
-  return detailStats.value.localeCnStats.slice(0, 5).map(item => `${item.locale}: ${item.cnt}`).join(', ')
 })
 
 const shortcuts = [
@@ -369,9 +361,6 @@ const buildAiContext = () => {
   if (stats.browserStats?.length) {
     context += `- 浏览器: ${stats.browserStats.map(item => `${item.browser}: ${item.cnt}`).join(', ')}\n`
   }
-  if (stats.localeCnStats?.length) {
-    context += `- 访问地区(TOP 5): ${stats.localeCnStats.slice(0, 5).map(item => `${item.locale}: ${item.cnt}`).join(', ')}\n`
-  }
 
   return context
 }
@@ -435,7 +424,7 @@ onMounted(() => {
 
   chatMessages.value.push({
     role: 'assistant',
-    content: '您好！我是短链接管理系统的 AI 助手。\n\n您可以选择一个分组，再选择该分组下的短链接，我会基于该链接的访问统计数据（PV、UV、访问地区、设备等）为您提供更精准的分析。\n\n或者您也可以询问关于全局数据的任何问题。请问有什么可以帮您的？'
+    content: '您好！我是短链接管理系统的 AI 助手。\n\n您可以选择一个分组，再选择该分组下的短链接，我会基于该链接的访问统计数据（PV、UV、设备等）为您提供更精准的分析。\n\n或者您也可以询问关于全局数据的任何问题。请问有什么可以帮您的？'
   })
 })
 </script>

@@ -51,11 +51,6 @@ public interface DetailedStatsService {
     List<?> getOsDistribution(String fullShortUrl, int days);
 
     /**
-     * 获取地区分布
-     */
-    List<?> getLocaleDistribution(String fullShortUrl, int days);
-
-    /**
      * 获取网络类型分布
      */
     List<?> getNetworkDistribution(String fullShortUrl, int days);

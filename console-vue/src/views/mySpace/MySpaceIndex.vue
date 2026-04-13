@@ -19,15 +19,6 @@
               <span class="over-text">{{ item.name }}</span>
             </div>
             <div class="flex-box">
-              <!-- 图标 -->
-              <el-tooltip show-after="500" class="box-item" effect="dark" :content="'查看图表'" placement="bottom-end">
-                <!-- 传group是为了表示这个请求是查询分组图表数据 -->
-                <el-icon v-if="!(item.shortLinkCount === 0 || item.shortLinkCount === null)" class="edit"
-                  :class="{ zero: item.shortLinkCount === 0 }"
-                  @click="chartsVisible({ describe: item.name, gid: item.gid, group: true })">
-                  <Histogram />
-                </el-icon>
-              </el-tooltip>
               <!-- 编辑按钮 -->
               <el-dropdown>
                 <div class="block">
@@ -53,14 +44,25 @@
       <div class="table-box">
         <!-- 默认展示创建短链输入框和按钮 -->
         <div class="buttons-box">
-          <div style="width: 100%; display: flex">
+          <div style="width: 100%; display: flex; align-items: center;">
             <el-button class="addButton organic-btn" type="primary" style="width: 130px; margin-right: 10px"
               @click="isAddSmallLink = true">创建短链</el-button>
             <el-button style="width: 130px; margin-right: 10px" @click="isAddSmallLinks = true">批量创建</el-button>
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索短链接..."
+              style="width: 250px; margin-left: auto;"
+              clearable
+              @input="handleSearch"
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
           </div>
         </div>
         <!-- 表格展示区域 -->
-        <el-table :data="tableData" height="calc(100vh - 240px)" style="width: 100%"
+        <el-table :data="filteredTableData" height="calc(100vh - 240px)" style="width: 100%"
           :header-cell-style="{ background: '#F3F4F1', color: '#2C2C24', fontWeight: '600' }">
           <!-- 数据为空时展示的内容 -->
           <template #empty>
@@ -249,7 +251,7 @@
         <!-- 分页器 -->
         <div class="pagination-block">
           <el-pagination v-model:current-page="pageParams.current" v-model:page-size="pageParams.size"
-            :page-sizes="[10, 15, 20, 30]" layout="total, sizes, prev, pager, next, jumper" :total="totalNums"
+            :page-sizes="[10, 15, 20, 30]" layout="total, sizes, prev, pager, next, jumper" :total="filteredTableData.length"
             @size-change="handleSizeChange" @current-change="handleCurrentChange" />
         </div>
       </div>
@@ -322,7 +324,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance, watch, nextTick } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, watch, nextTick, computed } from 'vue'
 import Sortable from 'sortablejs'
 import { cloneDeep } from 'lodash'
 import ChartsInfo from './components/chartsInfo/ChartsInfo.vue'
@@ -465,12 +467,33 @@ onMounted(() => {
   initSortable('sortOptions')
 })
 const tableData = ref([])
+const rawTableData = ref([])
 const pageParams = reactive({
   gid: null,
   current: 1,
   size: 15,
   orderTag: null
 })
+const searchKeyword = ref('')
+
+// 过滤后的表格数据
+const filteredTableData = computed(() => {
+  if (!searchKeyword.value.trim()) {
+    return rawTableData.value
+  }
+  const keyword = searchKeyword.value.toLowerCase().trim()
+  return rawTableData.value.filter(item =>
+    item.describe?.toLowerCase().includes(keyword) ||
+    item.fullShortUrl?.toLowerCase().includes(keyword) ||
+    item.originUrl?.toLowerCase().includes(keyword)
+  )
+})
+
+// 搜索处理函数
+const handleSearch = () => {
+  // 搜索时重置到第一页
+  pageParams.current = 1
+}
 watch(
   () => pageParams.orderTag,
   (nV) => {
@@ -484,7 +507,7 @@ const queryPage = async () => {
   nums.value = editableTabs.value?.[selectedIndex.value]?.shortLinkCount || 0
   const res = await allinoneAPI.listLinks(pageParams.gid)
   if (res?.data.code === '0') {
-    tableData.value = res.data?.data || []
+    rawTableData.value = res.data?.data || []
     totalNums.value = res.data?.data?.length || 0
   } else {
     ElMessage.error(res?.data.message || '获取数据失败')

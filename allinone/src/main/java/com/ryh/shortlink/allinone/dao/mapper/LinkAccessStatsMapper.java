@@ -52,4 +52,24 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
      */
     @Update("UPDATE t_link_access_stats SET uip = uip + 1, update_time = NOW() WHERE full_short_url = #{fullShortUrl} AND date = #{date}")
     int incrementUip(@Param("fullShortUrl") String fullShortUrl, @Param("date") Date date);
+
+    /**
+     * 根据短链接查询小时统计
+     */
+    @Select("SELECT hour, SUM(pv) as pv FROM t_link_access_stats WHERE full_short_url = #{fullShortUrl} AND date BETWEEN #{startDate} AND #{endDate} AND hour IS NOT NULL GROUP BY hour")
+    List<LinkAccessStatsDO> selectHourStatsByFullShortUrl(
+            @Param("fullShortUrl") String fullShortUrl,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    /**
+     * 根据短链接查询星期统计
+     */
+    @Select("SELECT weekday, SUM(pv) as pv FROM t_link_access_stats WHERE full_short_url = #{fullShortUrl} AND date BETWEEN #{startDate} AND #{endDate} AND weekday IS NOT NULL GROUP BY weekday")
+    List<LinkAccessStatsDO> selectWeekdayStatsByFullShortUrl(
+            @Param("fullShortUrl") String fullShortUrl,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
 }

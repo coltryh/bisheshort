@@ -145,41 +145,6 @@
               </template>
             </TitleContent>
 
-            <!-- 访问地区 - 中国地图 -->
-            <TitleContent class="chart-item" style="width: 800px" title="访问地区" @onMounted="initMap">
-              <template #titleButton>
-                <el-button @click="isChina = !isChina">{{ isChina ? '切换为世界地图' : '切换为中国地图' }}</el-button>
-              </template>
-              <template #content>
-                <div class="list-chart">
-                  <div v-show="isChina" class="top10">
-                    <span style="font-size: 14px">TOP 10 省份</span>
-                    <div>
-                      <span v-if="!chinaMapData || chinaMapData.length === 0" style="font-size: 14px; color: black; font-weight: 100">所选日期内没有访问数据</span>
-                    </div>
-                    <div class="top-item" v-for="(item, index) in chinaMapData" :key="item.name">
-                      <div v-if="index <= 9" class="key-value">
-                        <span>{{ index + 1 + '. ' + item.name }}</span>
-                        <span>{{ (item.ratio * 100).toFixed(2) }}%</span>
-                        <span>{{ item.value }}次</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-show="!isChina" class="top10">
-                    <span>TOP 10 国家</span>
-                    <template v-for="(item, index) in worldMapData" :key="item.name">
-                      <div v-if="index <= 9" class="key-value">
-                        <span>{{ item.name }}</span>
-                        <span>{{ item.value }}</span>
-                      </div>
-                    </template>
-                  </div>
-                  <div v-show="isChina" ref="chinaMapRef" class="chinaMap"></div>
-                  <div v-show="!isChina" ref="worldMapRef" class="worldMap"></div>
-                </div>
-              </template>
-            </TitleContent>
-
             <!-- 24小时分布 -->
             <TitleContent class="chart-item" title="24小时分布" style="width: 800px">
               <template #content>
@@ -249,11 +214,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
-import 'echarts/map/js/china.js'
-import 'echarts/map/js/world.js'
 import allinoneAPI from '@/api/modules/allinone.js'
 import smallLinkPage from '@/api/modules/smallLinkPage.js'
 import TitleContent from '@/views/mySpace/components/chartsInfo/TitleContent.vue'
@@ -280,16 +243,6 @@ const activeTab = ref('accessData')
 const isLineChart = ref(true)
 const lineChartRef = ref(null)
 let lineChart = null
-
-// 地图相关
-const chinaMapRef = ref(null)
-const worldMapRef = ref(null)
-let chinaMap = null
-let worldMap = null
-const isChina = ref(true)
-const chinaMapData = ref([])
-const worldMapData = ref([])
-const chinaTotalNum = ref(0)
 
 // 详细统计数据
 const detailStats = ref({})
@@ -422,7 +375,14 @@ const fetchDetailStats = async (fullShortUrl) => {
     if (res?.data?.code === '0') {
       detailStats.value = res.data?.data || {}
       processDetailData()
-      initMap()
+      // 确保 DOM 更新后再初始化图表
+      nextTick(() => {
+        if (lineChartRef.value && !lineChart) {
+          initLineChart()
+        } else if (lineChart) {
+          updateLineChart()
+        }
+      })
     } else {
       ElMessage.error(res.data?.message || '获取详细统计数据失败')
     }
@@ -467,98 +427,6 @@ const processDetailData = () => {
 
   // 处理访问曲线表格数据
   visitsData.value = detailStats.value?.daily || []
-
-  // 处理中国地图数据
-  chinaTotalNum.value = 0
-  chinaMapData.value = detailStats.value?.localeCnStats?.map((item) => {
-    let { cnt, locale, ratio } = item
-    locale = locale.replace('省', '')
-    locale = locale.replace('市', '')
-    chinaTotalNum.value += cnt
-    return { name: locale, value: cnt, ratio }
-  }) || []
-
-  // 处理世界地图数据
-  worldMapData.value = detailStats.value?.localeWorldStats?.map((item) => ({
-    name: item.locale,
-    value: item.cnt
-  })) || []
-}
-
-// 初始化地图
-const initMap = () => {
-  if (chinaMapRef.value) {
-    chinaMap = echarts.init(chinaMapRef.value)
-    const option = {
-      tooltip: {
-        formatter: function (params) {
-          if (params.value) {
-            return params.name + ' : ' + params.value
-          } else {
-            return params.name + ' : ' + '0'
-          }
-        }
-      },
-      visualMap: {
-        min: 0,
-        max: chinaTotalNum.value || 100,
-        left: 'left',
-        top: 'bottom',
-        text: ['高', '低'],
-        calculable: false,
-        orient: 'horizontal',
-        inRange: {
-          color: ['#e0ffff', '#006edd'],
-          symbolSize: [30, 100]
-        }
-      },
-      series: {
-        type: 'map',
-        map: 'china',
-        itemStyle: {
-          emphasis: {
-            areaColor: '#78dffc'
-          }
-        },
-        data: chinaMapData.value
-      }
-    }
-    chinaMap.setOption(option)
-  }
-
-  if (worldMapRef.value) {
-    worldMap = echarts.init(worldMapRef.value)
-    const worldOption = {
-      tooltip: {
-        formatter: '{b0}: {c0}'
-      },
-      visualMap: {
-        min: 0,
-        max: 1000,
-        left: 'left',
-        top: 'bottom',
-        text: ['高', '低'],
-        calculable: false,
-        orient: 'horizontal',
-        inRange: {
-          color: ['#e0ffff', '#006edd'],
-          symbolSize: [30, 100]
-        }
-      },
-      series: {
-        name: '数量',
-        type: 'map',
-        map: 'world',
-        itemStyle: {
-          emphasis: {
-            areaColor: '#78dffc'
-          }
-        },
-        data: worldMapData.value
-      }
-    }
-    worldMap.setOption(worldOption)
-  }
 }
 
 // 更新全局图表
@@ -682,9 +550,14 @@ const handleResize = () => {
   pvChart?.resize()
   uvChart?.resize()
   lineChart?.resize()
-  chinaMap?.resize()
-  worldMap?.resize()
 }
+
+// 监听 detailStats 变化，更新折线图
+watch(() => detailStats.value.daily, (newDaily) => {
+  if (newDaily && newDaily.length > 0) {
+    updateLineChart()
+  }
+}, { deep: true })
 
 onMounted(() => {
   initCharts()
@@ -698,8 +571,6 @@ onUnmounted(() => {
   pvChart?.dispose()
   uvChart?.dispose()
   lineChart?.dispose()
-  chinaMap?.dispose()
-  worldMap?.dispose()
 })
 </script>
 
@@ -785,16 +656,6 @@ onUnmounted(() => {
   margin: 10px;
   width: 600px;
   height: 200px;
-}
-
-.chinaMap {
-  width: 330px;
-  height: 240px;
-}
-
-.worldMap {
-  width: 330px;
-  height: 240px;
 }
 
 .scroll-box {

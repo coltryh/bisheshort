@@ -1,8 +1,12 @@
 package com.ryh.shortlink.allinone.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
+import com.ryh.shortlink.allinone.dao.entity.LinkStatsTodayDO;
+import com.ryh.shortlink.allinone.dao.entity.ShortLinkDO;
+import com.ryh.shortlink.allinone.dao.mapper.LinkStatsTodayMapper;
 import com.ryh.shortlink.allinone.dto.req.ShortLinkCreateReqDTO;
 import com.ryh.shortlink.allinone.dto.req.ShortLinkPageReqDTO;
 import com.ryh.shortlink.allinone.dto.req.ShortLinkUpdateReqDTO;
@@ -15,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 短链接控制器
@@ -27,6 +31,7 @@ import java.util.Map;
 public class ShortLinkController {
 
     private final ShortLinkService shortLinkService;
+    private final LinkStatsTodayMapper linkStatsTodayMapper;
 
     /**
      * 分页查询短链接
@@ -56,7 +61,46 @@ public class ShortLinkController {
         }
         try {
             var links = shortLinkService.listByGid(gid);
-            return Result.success(links);
+
+            // 获取今日日期
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            Date today = calendar.getTime();
+
+            // 获取所有短链接的完整URL
+            List<String> fullShortUrls = links.stream()
+                    .map(ShortLinkDO::getFullShortUrl)
+                    .collect(Collectors.toList());
+
+            // 批量查询今日统计
+            Map<String, LinkStatsTodayDO> todayStatsMap = new HashMap<>();
+            if (!fullShortUrls.isEmpty()) {
+                List<LinkStatsTodayDO> todayStatsList = linkStatsTodayMapper.selectByFullShortUrlsAndDate(fullShortUrls, today);
+                for (LinkStatsTodayDO stat : todayStatsList) {
+                    todayStatsMap.put(stat.getFullShortUrl(), stat);
+                }
+            }
+
+            // 转换为PageRespDTO并填充今日统计
+            List<ShortLinkPageRespDTO> result = links.stream().map(link -> {
+                ShortLinkPageRespDTO dto = BeanUtil.toBean(link, ShortLinkPageRespDTO.class);
+                LinkStatsTodayDO todayStat = todayStatsMap.get(link.getFullShortUrl());
+                if (todayStat != null) {
+                    dto.setTodayPv(todayStat.getTodayPv() != null ? todayStat.getTodayPv() : 0);
+                    dto.setTodayUv(todayStat.getTodayUv() != null ? todayStat.getTodayUv() : 0);
+                    dto.setTodayUip(todayStat.getTodayUip() != null ? todayStat.getTodayUip() : 0);
+                } else {
+                    dto.setTodayPv(0);
+                    dto.setTodayUv(0);
+                    dto.setTodayUip(0);
+                }
+                return dto;
+            }).collect(Collectors.toList());
+
+            return Result.success(result);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
@@ -91,6 +135,9 @@ public class ShortLinkController {
         if (username == null) {
             return Result.error("请先登录");
         }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以创建短链接");
+        }
         try {
             ShortLinkCreateRespDTO result = shortLinkService.createShortLink(requestParam);
             return Result.success(result);
@@ -107,6 +154,9 @@ public class ShortLinkController {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
             return Result.error("请先登录");
+        }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以创建短链接");
         }
         try {
             @SuppressWarnings("unchecked")
@@ -132,6 +182,9 @@ public class ShortLinkController {
         if (username == null) {
             return Result.error("请先登录");
         }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以修改短链接");
+        }
         try {
             shortLinkService.updateShortLink(requestParam);
             return Result.success();
@@ -148,6 +201,9 @@ public class ShortLinkController {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
             return Result.error("请先登录");
+        }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以删除短链接");
         }
         try {
             shortLinkService.deleteToRecycleBin(gid, fullShortUrl, username);

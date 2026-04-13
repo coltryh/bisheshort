@@ -49,6 +49,9 @@ public class GroupController {
         if (username == null) {
             return Result.error("请先登录");
         }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以创建分组");
+        }
         try {
             String groupName = requestParam.get("name");
             if (groupName == null || groupName.isEmpty()) {
@@ -70,6 +73,9 @@ public class GroupController {
         if (username == null) {
             return Result.error("请先登录");
         }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以修改分组");
+        }
         try {
             groupService.updateGroup(requestParam);
             return Result.success();
@@ -87,6 +93,9 @@ public class GroupController {
         if (username == null) {
             return Result.error("请先登录");
         }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以删除分组");
+        }
         try {
             groupService.deleteGroup(gid, username);
             return Result.success();
@@ -103,6 +112,9 @@ public class GroupController {
         String username = SessionUtils.getUsername(session);
         if (username == null) {
             return Result.error("请先登录");
+        }
+        if (!SessionUtils.isAdmin(session)) {
+            return Result.error("无权限操作，只有管理员可以排序分组");
         }
         try {
             groupService.sortGroup(requestParam, username);
