@@ -68,6 +68,31 @@ export default {
             method: 'get'
         })
     },
+    // 更新当前用户信息
+    updateCurrentUser(data) {
+        return http({
+            url: '/updateCurrentUser',
+            method: 'put',
+            data
+        })
+    },
+    user: {
+        // 获取用户信息
+        queryUserInfo() {
+            return http({
+                url: '/currentUser',
+                method: 'get'
+            })
+        },
+        // 编辑用户信息
+        editUser(data) {
+            return http({
+                url: '/updateCurrentUser',
+                method: 'put',
+                data
+            })
+        }
+    },
     // 用户列表
     listUsers() {
         return http({

@@ -305,14 +305,17 @@ const addUser = (formEl) => {
         // 注册成功后自动登录
         const res3 = await allinoneAPI.login({ username: addForm.username, password: addForm.password })
         const token = res3?.data?.data?.token
-        const user = res3?.data?.data?.user
         // 将username和token保存到cookies中和localStorage中
         if (token) {
           setToken(token)
           setUsername(addForm.username)
           localStorage.setItem('token', token)
           localStorage.setItem('username', addForm.username)
-          localStorage.setItem('userInfo', JSON.stringify(user))
+          // 获取完整用户信息
+          const userInfoRes = await allinoneAPI.currentUser()
+          if (userInfoRes?.data?.data) {
+            localStorage.setItem('userInfo', JSON.stringify(userInfoRes.data.data))
+          }
         }
         ElMessage.success('注册登录成功！')
         router.push('/home')
@@ -379,14 +382,17 @@ const login = (formEl) => {
       const res1 = await allinoneAPI.login(loginForm)
       if (res1.data.code === '0') {
         const token = res1?.data?.data?.token
-        const user = res1?.data?.data?.user
         // 将username和token保存到cookies中和localStorage中
         if (token) {
           setToken(token)
           setUsername(loginForm.username)
           localStorage.setItem('token', token)
           localStorage.setItem('username', loginForm.username)
-          localStorage.setItem('userInfo', JSON.stringify(user))
+          // 获取完整用户信息
+          const userInfoRes = await allinoneAPI.currentUser()
+          if (userInfoRes?.data?.data) {
+            localStorage.setItem('userInfo', JSON.stringify(userInfoRes.data.data))
+          }
         }
         ElMessage.success('登录成功！')
         router.push('/home')

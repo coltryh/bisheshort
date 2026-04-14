@@ -11,7 +11,7 @@ export default {
   // 编辑信息
   editUser(data) {
     return http({
-      url: '/user',
+      url: '/updateCurrentUser',
       method: 'put',
       data
     })
@@ -40,9 +40,9 @@ export default {
     })
   },
   // 根据用户名查找用户信息
-  queryUserInfo(data) {
+  queryUserInfo() {
     return http({
-      url: '/actual/user/' + data,
+      url: '/currentUser',
       method: 'get'
     })
   }

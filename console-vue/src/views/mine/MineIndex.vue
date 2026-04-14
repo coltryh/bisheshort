@@ -141,8 +141,7 @@ const API = proxy.$API
 const userInfo = ref()
 const userInfoForm = ref() // 修改信息
 const getUserInfo = async () => {
-  const username = getUsername()
-  userInfo.value = await API.user.queryUserInfo(username)
+  userInfo.value = await API.allinone.user.queryUserInfo()
   userInfoForm.value = cloneDeep(userInfo.value.data?.data)
   // console.log(userInfoForm.value)
 }
@@ -178,7 +177,7 @@ const changeUserInfo = (formEl) => {
   if (!formEl) return
   formEl.validate(async (valid) => {
     if (valid) {
-      await API.user.editUser(userInfoForm.value).then((res) => {
+      await API.allinone.user.editUser(userInfoForm.value).then((res) => {
         if (res?.data?.code !== '0') {
           ElMessage.error(res.data.message)
         } else {

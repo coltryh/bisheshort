@@ -115,6 +115,17 @@ onMounted(async () => {
       const userInfo = JSON.parse(userInfoStr)
       username.value = userInfo.username || actualUsername
       isAdmin.value = userInfo.role === 'admin'
+      // 如果没有role字段，尝试从API获取
+      if (!userInfo.role) {
+        const API = proxy.$API
+        const res = await API.allinone.currentUser()
+        if (res?.data?.data) {
+          const freshUserInfo = res.data.data
+          localStorage.setItem('userInfo', JSON.stringify(freshUserInfo))
+          username.value = freshUserInfo.username || actualUsername
+          isAdmin.value = freshUserInfo.role === 'admin'
+        }
+      }
     } catch (e) {
       username.value = actualUsername
     }

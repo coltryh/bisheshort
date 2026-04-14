@@ -3,6 +3,7 @@ package com.ryh.shortlink.allinone.controller;
 import com.ryh.shortlink.allinone.common.result.Result;
 import com.ryh.shortlink.allinone.common.utils.SessionUtils;
 import com.ryh.shortlink.allinone.dto.req.UserRegisterReqDTO;
+import com.ryh.shortlink.allinone.dto.req.UserUpdateReqDTO;
 import com.ryh.shortlink.allinone.dto.resp.UserLoginRespDTO;
 import com.ryh.shortlink.allinone.dto.resp.UserRespDTO;
 import com.ryh.shortlink.allinone.service.UserService;
@@ -92,6 +93,26 @@ public class LoginController {
         try {
             UserRespDTO user = userService.getUserByUsername(username);
             return Result.success(user);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 更新当前用户信息
+     */
+    @PutMapping("/updateCurrentUser")
+    public Result<?> updateCurrentUser(@RequestBody UserUpdateReqDTO requestParam, HttpSession session) {
+        String username = SessionUtils.getUsername(session);
+        if (username == null) {
+            return Result.error("请先登录");
+        }
+
+        try {
+            // 设置用户名，确保只能更新自己的信息
+            requestParam.setUsername(username);
+            userService.updateUser(requestParam);
+            return Result.success();
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
